@@ -115,7 +115,9 @@ body{
   background:var(--primary-soft);
   border-bottom:1px solid color-mix(in srgb,var(--primary) 16%,transparent);
   padding:max(10px,env(safe-area-inset-top)) 12px 10px;
+  transition:background .25s var(--ease);
 }
+.topbar.scrolled{background:color-mix(in srgb,var(--primary-soft) 82%, transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
 .top-search{flex:1;display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-pill);padding:9px 14px;min-width:0;transition:border-color .2s var(--ease)}
 .top-search:focus-within{border-color:var(--primary)}
 .top-search .search-ico{color:var(--text-3);font-size:13px;flex:none}
@@ -198,7 +200,7 @@ body{
 }
 .card::before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:4px;border-radius:4px;
   background:linear-gradient(180deg,var(--primary),#c9bcd3);opacity:0;transition:opacity .25s var(--ease)}
-.card:active{transform:scale(.99)}
+.card:active{transform:scale(.98)}
 @media(hover:hover){.card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);border-color:transparent}.card:hover::before{opacity:1}}
 .card-header{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
 .card-title{font-size:14.5px;font-weight:700;line-height:1.35}
@@ -269,6 +271,15 @@ body{
 .bank-card .b-num{font-family:"SF Mono","JetBrains Mono","Fira Code",monospace;font-size:13px;letter-spacing:.5px;color:var(--text);font-weight:700}
 .bank-card .b-meta{font-size:11.5px;color:var(--text-2);font-weight:600}
 .bank-card .b-meta b{color:var(--text-3);font-weight:700;margin-right:4px}
+.copyable{cursor:pointer;border-radius:6px;transition:background .15s,color .15s;user-select:none}
+.copyable:hover{color:var(--primary)}
+.bank-card .b-num.copyable{display:inline-flex;align-items:center;gap:6px;padding:2px 6px;margin:-2px -6px}
+.bank-card .b-num.copyable:hover{background:var(--primary-soft)}
+.bank-card .b-copy{font-size:12px;opacity:.5;transition:opacity .15s,color .15s}
+.bank-card .b-num.copyable:hover .b-copy{opacity:1;color:var(--primary)}
+.bank-card .b-cvc{cursor:pointer;display:inline-flex;align-items:center;gap:5px;user-select:none}
+.bank-card .b-cvc:hover{color:var(--primary)}
+.bank-card .b-eye{font-size:11px;opacity:.6;transition:opacity .15s}
 .bank-card .b-remark{flex-basis:100%;margin-top:2px;color:var(--text-2)}
 .bank-card .card-actions{opacity:1}
 .bank-card .alert-badge{display:inline-flex;align-items:center;font-size:10px;padding:2px 9px;border-radius:var(--r-pill);font-weight:800;color:#fff;margin-left:4px;letter-spacing:.2px}
@@ -308,6 +319,15 @@ body{
 .memo-card:active,.note-card:active{transform:scale(.99)}
 .memo-card .card-body,.note-card .card-body{margin-top:7px;-webkit-line-clamp:1}
 .memo-go,.note-go{position:absolute;right:13px;top:50%;transform:translateY(-50%);color:var(--text-3);font-size:13px;pointer-events:none}
+.memo-card .memo-pin{position:absolute;top:8px;right:8px;width:26px;height:26px;border:none;background:transparent;color:var(--text-3);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:background .15s,color .15s,transform .1s}
+.memo-card .memo-pin:active{transform:scale(.88)}
+.memo-card .memo-pin:hover{background:var(--surface-3);color:var(--primary)}
+.memo-card.pinned{border-color:var(--primary);background:var(--primary-soft)}
+.memo-card .pin-flag{position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--primary);border-radius:var(--r-sm) 0 0 var(--r-sm)}
+.trash-list{display:flex;flex-direction:column;gap:9px;max-height:54vh;overflow:auto;margin-top:8px}
+.trash-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2)}
+.trash-main{flex:1;min-width:0}
+.trash-btns{display:flex;gap:6px;flex:none}
 .b-dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:none;margin-right:2px}
 .b-type-pill{font-size:10.5px;font-weight:700;color:var(--accent,var(--text-2));background:var(--surface-3);border:1px solid var(--accent,var(--line));padding:1px 8px;border-radius:var(--r-pill)}
 .img-list{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
@@ -351,7 +371,10 @@ body{
 .tag-input-wrap input{flex:1;min-width:80px;border:none!important;outline:none!important;box-shadow:none!important;padding:2px 0!important;font-size:13px;background:transparent!important;color:var(--text)}
 
 /* ============ 密码锁 ============ */
-.lock-screen{position:absolute;inset:0;background:var(--bg-deco);z-index:300;display:flex;align-items:center;justify-content:center;padding:24px;padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+.lock-screen{position:absolute;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;padding:24px;padding-bottom:calc(24px + env(safe-area-inset-bottom));
+  background:radial-gradient(130% 90% at 50% -10%, color-mix(in srgb,var(--primary-soft) 75%, transparent) 0%, transparent 55%), var(--bg-deco);}
+@keyframes lockShake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-7px)}40%,60%{transform:translateX(7px)}}
+.lock-box.shake{animation:lockShake .5s}
 .lock-box{background:var(--surface);border-radius:var(--r-lg);box-shadow:var(--shadow-lg);padding:40px 30px;width:100%;max-width:380px;max-height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;text-align:center;border:1px solid var(--line)}
 .lock-box .lock-icon{width:84px;height:84px;margin:0 auto 20px;background:linear-gradient(135deg,var(--primary) 0%,#5B8DEF 100%);border-radius:26px;display:flex;align-items:center;justify-content:center;font-size:36px;color:#fff;box-shadow:0 10px 28px rgba(37,99,235,.3)}
 .lock-box h2{font-size:19px;margin-bottom:9px;font-weight:800}
@@ -359,6 +382,19 @@ body{
 .lock-box input{width:100%;padding:13px 16px;border:1.5px solid var(--line-strong);border-radius:var(--r-sm);background:var(--surface-2);color:var(--text);font-size:16px;text-align:center;letter-spacing:2px;margin-bottom:10px;outline:none;transition:all .2s var(--ease)}
 .lock-box input:focus{border-color:var(--primary);box-shadow:0 0 0 4px var(--primary-soft);background:var(--surface)}
 .lock-error{color:var(--danger);font-size:12px;margin-bottom:8px;min-height:18px;font-weight:600}
+/* 9宫格数字密码 */
+.pin-dots{display:flex;justify-content:center;gap:13px;margin-bottom:24px;min-height:14px}
+.pin-dot{width:12px;height:12px;border-radius:50%;background:var(--line-strong);transition:all .18s var(--ease)}
+.pin-dot.filled{background:var(--primary);transform:scale(1.15);animation:pinPop .22s var(--ease)}
+.pin-dot.error{background:var(--danger);transform:scale(1.15)}
+@keyframes pinPop{0%{transform:scale(0)}60%{transform:scale(1.3)}100%{transform:scale(1.15)}}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;max-width:258px;margin:0 auto}
+.pin-key{aspect-ratio:1/1;border:1px solid var(--line);background:var(--surface-2);border-radius:18px;font-size:25px;font-weight:600;color:var(--text);box-shadow:var(--shadow-sm);transition:transform .1s var(--ease),background .1s;user-select:none;cursor:pointer}
+.pin-key:active{transform:scale(.9);background:var(--primary-soft);border-color:var(--primary)}
+.pin-key-empty{background:transparent;border:none;box-shadow:none;pointer-events:none}
+.pin-key-del{color:var(--text-2);font-size:22px}
+.lock-legacy-link{cursor:pointer}
+.lock-legacy-link:hover{color:var(--primary)}
 
 /* ============ 搜索 ============ */
 .search-input-wrap{position:relative;margin-bottom:18px}
@@ -399,6 +435,16 @@ body{
 .set-btns{display:flex;gap:8px;flex:none}
 .set-item-danger{border-color:color-mix(in srgb,var(--danger) 38%,var(--line))}
 .set-item-danger .set-head i{color:var(--danger-strong)}
+.gs-results{max-height:54vh;overflow:auto;display:flex;flex-direction:column;gap:7px;margin-top:4px}
+.gs-empty{text-align:center;color:var(--text-3);font-size:13px;padding:26px 0}
+.gs-item{display:flex;align-items:center;gap:11px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--surface);cursor:pointer;transition:border-color .15s,background .15s,transform .1s}
+.gs-item:active{transform:scale(.99)}
+.gs-item:hover{border-color:var(--primary);background:var(--primary-soft)}
+.gs-ico{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:var(--surface-3);font-size:13px;flex:none}
+.gs-txt{flex:1;min-width:0}
+.gs-title{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gs-sub{font-size:11.5px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.gs-go{color:var(--text-3);font-size:12px;flex:none}
 
 /* ============ 顶部导航 + 浮动按钮 ============ */
 .nav-item{
@@ -442,6 +488,77 @@ body{
 .sheet-item .si-text span{font-size:14.5px;font-weight:800}
 .sheet-item .si-text em{font-size:11.5px;color:var(--text-3);font-style:normal;font-weight:500}
 .sheet-cancel{width:100%;padding:14px;border:none;background:var(--surface-3);color:var(--text-2);border-radius:var(--r);font-size:14px;font-weight:700;cursor:pointer;margin-top:4px}
+
+/* ===== 待办模块 ===== */
+.todo-stats{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.todo-stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:9px 11px;flex:1;min-width:68px;text-align:center;box-shadow:var(--shadow-sm)}
+.todo-stat b{display:block;font-size:18px;font-weight:800;color:var(--primary-strong)}
+.todo-stat span{font-size:10.5px;color:var(--text-3)}
+.todo-stat.overdue b{color:var(--danger)}
+.todo-stat.done b{color:#43a06a}
+.todo-tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.todo-tab{border:1px solid var(--line);background:var(--surface);color:var(--text-3);padding:6px 13px;border-radius:999px;cursor:pointer;font-size:12px;font-weight:700;transition:all .15s}
+.todo-tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.todo-item{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:12px 13px;display:flex;align-items:flex-start;gap:10px;box-shadow:var(--shadow-sm);transition:opacity .25s var(--ease),border-color .15s,transform .12s var(--ease);cursor:pointer;margin-bottom:9px;position:relative;overflow:hidden}
+.todo-item:hover{border-color:var(--primary)}
+.todo-item.overdue{border-color:var(--danger);background:rgba(239,107,107,.06)}
+.todo-item.done{opacity:.5}
+.todo-item:active{transform:scale(.98)}
+.todo-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--line-strong);transition:background .2s}
+.todo-item.s-over::before,.todo-item.s-over.overdue::before{background:var(--danger)}
+.todo-item.s-today::before{background:var(--warning)}
+.todo-item.s-soon::before{background:var(--line-strong)}
+.todo-item.s-done::before{background:#43a06a}
+.todo-item.s-over{box-shadow:0 0 0 1px var(--danger) inset,var(--shadow-sm)}
+.todo-item.dragging{opacity:.4;box-shadow:var(--shadow-lg)}
+.todo-item.drop-line{border-top:2px dashed var(--primary)}
+.prio-row{display:flex;gap:7px;margin-top:2px}
+.prio-btn{flex:1;border:1px solid var(--line);background:var(--surface-2);color:var(--text-3);padding:8px 0;border-radius:10px;cursor:pointer;font-size:12.5px;font-weight:700;transition:all .15s}
+.prio-btn.active{color:#fff;border-color:transparent}
+.prio-btn[data-p="none"].active{background:var(--text-2);border-color:var(--text-2)}
+.prio-btn[data-p="low"].active{background:#3b9e6b;border-color:#3b9e6b}
+.prio-btn[data-p="mid"].active{background:var(--warning);border-color:var(--warning)}
+.prio-btn[data-p="high"].active{background:var(--danger);border-color:var(--danger)}
+.prio-btn:active{transform:scale(.97)}
+.switch-row{display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-weight:600;font-size:13.5px;color:var(--text-1)}
+.switch{position:relative;display:inline-block;width:44px;height:25px;flex:none}
+.switch input{opacity:0;width:0;height:0}
+.switch .slider{position:absolute;cursor:pointer;inset:0;background:var(--line-strong);border-radius:999px;transition:background .2s var(--ease)}
+.switch .slider::before{content:'';position:absolute;height:19px;width:19px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .2s var(--ease);box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.switch input:checked+.slider{background:var(--primary)}
+.switch input:checked+.slider::before{transform:translateX(19px)}
+.todo-badge.count{background:rgba(99,102,241,.12);color:#6366f1}
+.todo-badge.prio{font-weight:700}
+.todo-badge.prio.high{background:rgba(239,107,107,.14);color:var(--danger)}
+.todo-badge.prio.mid{background:rgba(245,158,11,.16);color:#b9770a}
+.todo-badge.prio.low{background:rgba(59,158,107,.14);color:#3b9e6b}
+.confetti{position:fixed;top:40%;left:50%;width:9px;height:14px;border-radius:2px;pointer-events:none;z-index:9000;animation:confettiFall .9s ease-out forwards}
+@keyframes confettiFall{0%{opacity:1;transform:translate(0,0) rotate(0)}100%{opacity:0;transform:translate(var(--cx,0),var(--cy,120px)) rotate(var(--cr,360deg))}}
+.todo-check{width:24px;height:24px;border-radius:7px;border:2px solid var(--line-strong);flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:700;transition:all .15s;background:var(--surface-2);margin-top:1px}
+.todo-item.done .todo-check{background:#43a06a;border-color:#43a06a}
+.todo-body{flex:1;min-width:0}
+.todo-title{font-weight:700;font-size:14.5px;word-break:break-word;line-height:1.35}
+.todo-item.done .todo-title{text-decoration:line-through}
+.todo-meta{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px;font-size:11px;color:var(--text-3);align-items:center}
+.todo-badge{display:inline-block;padding:2px 7px;border-radius:999px;font-size:10.5px;font-weight:600}
+.todo-badge.over{background:rgba(239,107,107,.12);color:var(--danger)}
+.todo-badge.rep{background:var(--primary-soft);color:var(--primary)}
+.todo-badge.left{background:var(--surface-3);color:var(--text-3)}
+.todo-del{border:none;background:transparent;color:var(--text-3);cursor:pointer;font-size:19px;line-height:1;padding:2px 6px;border-radius:7px;flex:none}
+.todo-del:hover{background:rgba(239,107,107,.08);color:var(--danger)}
+.todo-actions{display:flex;gap:8px;margin-top:12px}
+/* 打卡 */
+.checkin-card{margin-top:16px}
+.checkin-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px}
+.checkin-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2);transition:background .15s,border-color .15s}
+.checkin-item.done{background:rgba(67,160,106,.07);border-color:#cfe9d8}
+.checkin-item.done .todo-check{background:#43a06a;border-color:#43a06a}
+.ci-body{flex:1;min-width:0}
+.ci-title{font-weight:600;font-size:14px}
+.ci-title.done{color:#43a06a}
+.ci-link{border:none;background:var(--primary-soft);color:var(--primary);font-weight:600;font-size:11px;padding:7px 12px;border-radius:999px;cursor:pointer;text-decoration:none;white-space:nowrap;transition:filter .15s}
+.ci-link:active{transform:scale(.96)}
+.ci-edit{border:none;background:transparent;cursor:pointer;font-size:15px;line-height:1;padding:4px 5px;border-radius:7px;flex:none}
 </style>
 </head>
 <body data-theme="light">
@@ -449,30 +566,66 @@ body{
 <div class="phone">
 <!-- 密码锁 -->
 <div class="lock-screen" id="lockScreen">
-  <div class="lock-box">
+  <div class="lock-box" id="lockBox">
     <div class="lock-icon"><i class="fa-solid fa-fingerprint"></i></div>
-    <h2 id="lockTitle">设置主密码</h2>
-    <p id="lockDesc">设置主密码以加密保护你的数据<br>密码无法找回，请务必牢记</p>
-    <input type="password" id="lockPassword" placeholder="请输入主密码" autocomplete="off">
-    <input type="password" id="lockPassword2" placeholder="请再次输入确认" autocomplete="off" style="display:none">
+    <h2 id="lockTitle">设置数字密码</h2>
+    <p id="lockDesc">设置一个 4–12 位数字密码<br>用于加密你的数据，无法找回请牢记</p>
+    <div class="pin-dots" id="pinDots"></div>
     <div class="lock-error" id="lockError"></div>
-    <button class="btn btn-primary" id="lockBtn" style="width:100%">确认</button>
+    <div class="pin-pad" id="pinPad">
+      <button class="pin-key" data-k="1">1</button>
+      <button class="pin-key" data-k="2">2</button>
+      <button class="pin-key" data-k="3">3</button>
+      <button class="pin-key" data-k="4">4</button>
+      <button class="pin-key" data-k="5">5</button>
+      <button class="pin-key" data-k="6">6</button>
+      <button class="pin-key" data-k="7">7</button>
+      <button class="pin-key" data-k="8">8</button>
+      <button class="pin-key" data-k="9">9</button>
+      <button class="pin-key pin-key-empty"></button>
+      <button class="pin-key" data-k="0">0</button>
+      <button class="pin-key pin-key-del" data-k="del"><i class="fa-solid fa-delete-left"></i></button>
+    </div>
+    <button class="btn btn-primary" id="lockBtn" style="width:100%;margin-top:20px;justify-content:center">继续</button>
+    <a class="lock-legacy-link" id="lockLegacyLink" style="display:none;margin-top:16px;font-size:12.5px;color:var(--text-2)">用原密码（含字母）解锁</a>
+    <input type="password" id="lockLegacy" placeholder="原密码" autocomplete="off" style="display:none;margin-top:10px">
   </div>
 </div>
   <!-- 顶部：搜索栏 + 更多菜单 -->
-  <div class="topbar">
+  <div class="topbar" id="topbar">
     <div class="top-search">
       <i class="fa-solid fa-magnifying-glass search-ico"></i>
-      <input type="text" id="topSearch" placeholder="搜索当前列表…" oninput="onSearchInput()">
+      <input type="text" id="topSearch" placeholder="全局搜索：待办 / 备忘 / 银行卡 / 笔记…" oninput="onSearchInput()">
     </div>
     <button class="menu-btn" id="settingsBtnTop" title="设置"><i class="fa-solid fa-gear"></i></button>
   </div>
 
   <!-- 内容滚动区 -->
-  <div class="scroll">
+  <div class="scroll" id="scrollEl">
     <div class="main">
+      <!-- 待办面板 -->
+      <div class="tab-panel active" id="panel-todo">
+        <div class="greet">
+          <h1 id="greetHi">早上好</h1>
+          <p id="headerDate"></p>
+          <div class="stat-row">
+            <div class="stat"><b id="greetPend">0</b><span>待办</span></div>
+            <div class="stat"><b id="greetOver">0</b><span>超时</span></div>
+          </div>
+        </div>
+        <div class="todo-stats" id="todoStats"></div>
+        <div class="todo-tabs" id="todoTabs"><span class="todo-tab active" data-f="all">全部</span><span class="todo-tab" data-f="pend">待办</span><span class="todo-tab" data-f="over">超时</span><span class="todo-tab" data-f="done">已完成</span><span class="todo-tab" data-f="count">倒数</span></div>
+        <div id="todoList"></div>
+        <div class="empty-state" id="todoEmpty" style="display:none"><i class="fa-solid fa-list-check"></i><p>还没有待办，点右下角 + 添加</p></div>
+        <div class="todo-actions" id="todoActions"><button class="btn btn-sm btn-outline" onclick="clearDoneTodos()">清除已完成</button></div>
+        <div class="card checkin-card">
+          <div class="card-head"><div class="card-title">📅 每日打卡</div><div class="card-sub" id="checkinSub"></div></div>
+          <ul class="checkin-list" id="checkinList"></ul>
+          <div style="margin-top:10px"><button class="btn btn-sm btn-outline" onclick="openCheckinEdit()">＋ 新增打卡项</button></div>
+        </div>
+      </div>
       <!-- 备忘面板 -->
-      <div class="tab-panel active" id="panel-memo">
+      <div class="tab-panel" id="panel-memo">
         <div class="category-bar" id="memoTagCloud"></div>
         <div id="memoList"></div>
         <div class="empty-state" id="memoEmpty" style="display:none"><i class="fa-solid fa-note-sticky"></i><p>还没有备忘，点右下角 + 新建一条吧</p></div>
@@ -503,7 +656,8 @@ body{
 
   <!-- 底部固定模块导航 -->
   <div class="bottom-nav">
-    <button class="nav-item active" data-tab="memo"><i class="fa-solid fa-note-sticky"></i><span>备忘</span></button>
+    <button class="nav-item active" data-tab="todo"><i class="fa-solid fa-list-check"></i><span>待办</span></button>
+    <button class="nav-item" data-tab="memo"><i class="fa-solid fa-note-sticky"></i><span>备忘</span></button>
     <button class="nav-item" data-tab="bank"><i class="fa-solid fa-credit-card"></i><span>银行卡</span></button>
     <button class="nav-item" data-tab="stock"><i class="fa-solid fa-chart-line"></i><span>笔记</span></button>
   </div>
@@ -514,9 +668,12 @@ body{
 <script>
 "use strict";
 const DB_NAME='memo_vault_db', STORE='vault', VAULT_KEY='vault';
-let cryptoKey=null, vaultSalt=null;
-let state={ memos:[], banks:[], stocks:[] };
-let currentTab='memo', bankFilter='all', stockFilterTags=[], memoFilterTags=[], searchQuery='';
+let cryptoKey=null, vaultSalt=null, vaultPinLen=0;
+const DEFAULT_CHECKIN_DEFS=[{id:'eye',title:'眼部放松',icon:'💧',url:'https://v.douyin.com/0A3nxFCY0EQ/'},{id:'shake',title:'摇垮跟练',icon:'💃',url:'https://v.douyin.com/8DooryoLjrs/'},{id:'bdj',title:'八段锦跟练',icon:'🧘',url:'https://v.douyin.com/8vx_0r61WVE/'},{id:'gufa',title:'古法健身',icon:'🌿',url:'https://v.douyin.com/x4wps8yl_so/'}];
+function normalizeState(d){ d=d||{}; return { memos:Array.isArray(d.memos)?d.memos:[], banks:Array.isArray(d.banks)?d.banks:[], stocks:Array.isArray(d.stocks)?d.stocks:[], todos:Array.isArray(d.todos)?d.todos:[], trash:Array.isArray(d.trash)?d.trash:[], checkinDefs:Array.isArray(d.checkinDefs)?d.checkinDefs:DEFAULT_CHECKIN_DEFS, checkinState:(d.checkinState&&typeof d.checkinState==='object')?d.checkinState:{date:'',done:{}} }; }
+let state=normalizeState();
+let currentTab='todo', bankFilter='all', stockFilterTags=[], memoFilterTags=[], searchQuery='';
+let revealedCVV=new Set();
 
 const $=id=>document.getElementById(id);
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
@@ -550,45 +707,59 @@ function openDB(){ return new Promise((res,rej)=>{ const r=indexedDB.open(DB_NAM
 async function idbGet(key){ const db=await openDB(); return new Promise((res,rej)=>{ const rq=db.transaction(STORE,'readonly').objectStore(STORE).get(key); rq.onsuccess=()=>res(rq.result); rq.onerror=()=>rej(rq.error); }); }
 async function idbPut(key,val){ const db=await openDB(); return new Promise((res,rej)=>{ const t=db.transaction(STORE,'readwrite'); t.objectStore(STORE).put(val,key); t.oncomplete=()=>res(); t.onerror=()=>rej(t.error); }); }
 async function idbDel(key){ const db=await openDB(); return new Promise((res,rej)=>{ const t=db.transaction(STORE,'readwrite'); t.objectStore(STORE).delete(key); t.oncomplete=()=>res(); t.onerror=()=>rej(t.error); }); }
-async function save(){ if(!cryptoKey)return; const rec=await encryptObj(state,cryptoKey); await idbPut(VAULT_KEY,{salt:b64enc(vaultSalt),...rec}); }
+async function save(){ if(!cryptoKey)return; const rec=await encryptObj(state,cryptoKey); await idbPut(VAULT_KEY,{salt:b64enc(vaultSalt),pinLen:vaultPinLen,...rec}); autoBackup(); }
+function autoBackup(){ try{ const strip=o=>{ const c=JSON.parse(JSON.stringify(o)); (c.memos||[]).forEach(m=>{delete m.images;}); (c.stocks||[]).forEach(s=>{delete s.images;}); return c; }; const snap={savedAt:nowISO(),data:strip(state)}; localStorage.setItem('memo_auto_backup',JSON.stringify(snap)); }catch(e){} }
+function restoreAutoBackup(){ const raw=localStorage.getItem('memo_auto_backup'); if(!raw){toast('没有可用的自动备份','error');return;} let snap; try{snap=JSON.parse(raw);}catch(e){toast('备份文件损坏','error');return;} confirmDialog('恢复自动备份','将用本地自动备份（'+fmtTime(snap.savedAt)+'，仅文字、不含图片）覆盖当前数据。').then(ok=>{ if(!ok)return; const d=snap.data||{}; if(Array.isArray(d.memos))state.memos=d.memos; if(Array.isArray(d.banks))state.banks=d.banks; if(Array.isArray(d.stocks))state.stocks=d.stocks; if(Array.isArray(d.todos))state.todos=d.todos; save();renderAll();closeModal();toast('已恢复自动备份','success'); }); }
 
 /* 密码锁 */
+const PIN_MIN=4, PIN_MAX=12;
+let pinBuffer='', pinStep=0, pinFirst='';
 async function initLock(){
   const exists=await idbGet(VAULT_KEY);
   const screen=$('lockScreen');
   if(!exists){
-    $('lockTitle').textContent='设置主密码'; $('lockDesc').innerHTML='设置主密码以加密保护你的数据<br>密码无法找回，请务必牢记';
-    $('lockPassword2').style.display='block'; $('lockBtn').textContent='设置并进入'; $('lockBtn').dataset.mode='setup';
+    $('lockTitle').textContent='设置数字密码'; $('lockDesc').innerHTML='设置一个 4–12 位数字密码<br>用于加密你的数据，无法找回请牢记';
+    $('lockBtn').dataset.mode='setup'; $('lockBtn').textContent='继续';
+    $('lockLegacyLink').style.display='none'; $('lockLegacy').style.display='none'; $('pinPad').style.display='grid';
+    renderPinDots(PIN_MIN);
   }else{
-    $('lockTitle').textContent='输入主密码'; $('lockDesc').textContent='请输入主密码以解锁你的数据';
-    $('lockPassword2').style.display='none'; $('lockBtn').textContent='解锁'; $('lockBtn').dataset.mode='unlock';
+    const rec=exists; vaultPinLen=rec.pinLen||0;
+    $('lockTitle').textContent='输入数字密码'; $('lockDesc').textContent='请输入你的数字密码以解锁';
+    $('lockBtn').dataset.mode='unlock'; $('lockBtn').textContent='解锁';
+    if(!vaultPinLen){ $('lockLegacyLink').style.display='block'; } else { $('lockLegacyLink').style.display='none'; $('lockLegacy').style.display='none'; }
+    $('pinPad').style.display='grid';
+    renderPinDots(vaultPinLen||PIN_MIN);
   }
   screen.style.display='flex';
-  // 键盘弹出时，把当前输入框滚动到可视区域中央，保证始终居中可见
-  ['lockPassword','lockPassword2'].forEach(id=>{ const el=$(id); if(el&&!el._lk){ el._lk=1; el.addEventListener('focus',()=>{ setTimeout(()=>{ try{ el.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){ try{el.scrollIntoView();}catch(_){} } },360); }); } });
 }
-function lockNow(){ cryptoKey=null; const ls=$('lockStatus'); if(ls){ls.className='lock-pill locked'; ls.innerHTML='<i class="fa-solid fa-lock"></i> 已锁定'; ls.style.display='';} $('lockPassword').value=''; initLock(); }
+function lockNow(){ cryptoKey=null; const ls=$('lockStatus'); if(ls){ls.className='lock-pill locked'; ls.innerHTML='<i class="fa-solid fa-lock"></i> 已锁定'; ls.style.display='';} initLock(); }
 $('lockBtn').onclick=async()=>{
-  const pw=$('lockPassword').value, mode=$('lockBtn').dataset.mode; $('lockError').textContent='';
-  if(!pw){$('lockError').textContent='请输入密码';return;}
-  try{
-    if(mode==='setup'){
-      const pw2=$('lockPassword2').value;
-      if(pw.length<4){$('lockError').textContent='密码至少 4 位';return;}
-      if(pw!==pw2){$('lockError').textContent='两次输入不一致';return;}
-      const salt=crypto.getRandomValues(new Uint8Array(16)); vaultSalt=salt; cryptoKey=await deriveKey(pw,salt);
-      state={memos:[],banks:[],stocks:[]};
-      const rec=await encryptObj(state,cryptoKey); await idbPut(VAULT_KEY,{salt:b64enc(salt),...rec});
-      finishUnlock(); toast('主密码设置成功','success');
+  const mode=$('lockBtn').dataset.mode; $('lockError').textContent='';
+  if(mode==='setup'){
+    if(pinStep===0){
+      if(pinBuffer.length<PIN_MIN){lockErrorShake(`至少 ${PIN_MIN} 位`);return;}
+      pinFirst=pinBuffer; pinStep=1; pinBuffer=''; onPinInput(); $('lockDesc').textContent='再输入一次以确认';
     }else{
-      const rec=await idbGet(VAULT_KEY), salt=b64dec(rec.salt); vaultSalt=salt;
-      const key=await deriveKey(pw,salt); let data;
-      try{data=await decryptObj(rec,key);}catch(e){$('lockError').textContent='密码错误，请重试';return;}
-      cryptoKey=key; state={memos:[],banks:[],stocks:[],...data}; finishUnlock();
+      if(pinBuffer!==pinFirst){ pinBuffer=''; pinFirst=''; pinStep=0; onPinInput(); $('lockDesc').textContent='设置一个 4–12 位数字密码'; lockErrorShake('两次不一致，重来'); return;}
+      const pw=pinBuffer; const salt=crypto.getRandomValues(new Uint8Array(16)); vaultSalt=salt; cryptoKey=await deriveKey(pw,salt);
+      state=normalizeState();
+      const rec=await encryptObj(state,cryptoKey); await idbPut(VAULT_KEY,{salt:b64enc(salt),pinLen:pw.length,...rec});
+      vaultPinLen=pw.length; finishUnlock(); toast('数字密码设置成功','success');
     }
-  }catch(e){$('lockError').textContent='出错了：'+e.message;}
+  }else{
+    if($('lockLegacy').style.display!=='none'){ const pw=$('lockLegacy').value; if(!pw){$('lockError').textContent='请输入原密码';return;} await doUnlock(pw); return; }
+    if(!pinBuffer){$('lockError').textContent='请输入密码';return;}
+    await doUnlock(pinBuffer);
+  }
 };
-function finishUnlock(){ $('lockScreen').style.display='none'; const ls=$('lockStatus'); if(ls)ls.style.display='none'; renderAll(); const due=state.banks.map(b=>billingReminder(b)).filter(Boolean); if(due.length)setTimeout(()=>toast(`${due.length} 张卡未来 ${BILL_WINDOW_DAYS} 天内出账单，记得留意`,''),400); }
+async function doUnlock(pw){ const rec=await idbGet(VAULT_KEY), salt=b64dec(rec.salt); vaultSalt=salt; const key=await deriveKey(pw,salt); let data; try{data=await decryptObj(rec,key);}catch(e){ lockErrorShake('密码错误，请重试'); pinBuffer=''; onPinInput(); return; } cryptoKey=key; state=normalizeState(data); finishUnlock(); }
+function renderPinDots(expected){ const d=$('pinDots'); if(!d)return; const n=Math.max(expected,pinBuffer.length); while(d.children.length<n){ const s=document.createElement('span'); s.className='pin-dot'; d.appendChild(s); } while(d.children.length>n){ d.removeChild(d.lastChild); } const err=d.dataset.err==='1'; for(let i=0;i<n;i++){ d.children[i].className='pin-dot'+(i<pinBuffer.length?(err?' error':' filled'):''); } }
+function lockErrorShake(msg){ const e=$('lockError'); if(e)e.textContent=msg; const box=$('lockBox'); if(box){box.classList.remove('shake'); void box.offsetWidth; box.classList.add('shake'); setTimeout(()=>box.classList.remove('shake'),520);} const d=$('pinDots'); if(d){d.dataset.err='1'; renderPinDots(pinBuffer.length);} }
+function pinKeyPressed(k){ if(k==='del'){ pinBuffer=pinBuffer.slice(0,-1); } else { if(pinBuffer.length>=PIN_MAX)return; pinBuffer+=k; } onPinInput(); }
+function onPinInput(){ const mode=$('lockBtn').dataset.mode; $('lockError').textContent=''; const pd=$('pinDots'); if(pd)pd.dataset.err=''; if(mode==='setup'){ renderPinDots(pinStep===0?PIN_MIN:pinFirst.length); $('lockBtn').textContent= pinStep===0?'继续':'确认'; } else { const exp=vaultPinLen||PIN_MIN; renderPinDots(Math.max(exp,pinBuffer.length)); if(vaultPinLen && pinBuffer.length===vaultPinLen){ doUnlock(pinBuffer); } } }
+$('lockLegacyLink').onclick=()=>{ const inp=$('lockLegacy'); const show=inp.style.display==='none'; inp.style.display=show?'block':'none'; $('pinPad').style.display=show?'none':'grid'; if(show)$('lockError').textContent=''; };
+document.querySelectorAll('#pinPad .pin-key').forEach(b=>{ b.onclick=()=>pinKeyPressed(b.dataset.k); });
+function finishUnlock(){ $('lockScreen').style.display='none'; const ls=$('lockStatus'); if(ls)ls.style.display='none'; renderAll(); const due=state.banks.map(b=>billingReminder(b)).filter(Boolean); if(due.length)setTimeout(()=>toast(`${due.length} 张卡未来 ${BILL_WINDOW_DAYS} 天内出账单，记得留意`,''),400); if(notifyPerm==='granted'){ const now=Date.now(); const pend=state.todos.filter(t=>!t.done).length, over=state.todos.filter(t=>isOverdue(t,now)).length; let body='待办 '+pend+' 项'; if(over)body+='，其中 '+over+' 项已超时'; if(due.length)body+='；'+due.length+' 张卡临近账单日'; notify('综合备忘录 · 今日概览',body); } }
 
 /* 底部导航切换 */
 document.querySelectorAll('.nav-item').forEach(btn=>{
@@ -599,10 +770,20 @@ document.querySelectorAll('.nav-item').forEach(btn=>{
     $('panel-'+currentTab).classList.add('active');
     toggleFab();
     if(currentTab==='bank')renderBankFilter();
-    if(currentTab==='stock'){renderStockTags();renderStocks();}
+    if(currentTab==='todo'){renderTodos();renderCheckins();} if(currentTab==='stock'){renderStockTags();renderStocks();}
   };
 });
 function toggleFab(){ $('fab').classList.remove('hidden'); }
+
+/* 滚动：顶栏毛玻璃 + FAB 显隐 */
+let _lastScrollY=0;
+function onScroll(){
+  const el=$('scrollEl'); if(!el)return; const y=el.scrollTop;
+  const tb=$('topbar'); if(tb)tb.classList.toggle('scrolled', y>10);
+  const f=$('fab'); if(f){ if(y>_lastScrollY && y>140) f.classList.add('hidden'); else if(y<_lastScrollY) f.classList.remove('hidden'); }
+  _lastScrollY=y;
+}
+const _scroller=$('scrollEl'); if(_scroller)_scroller.addEventListener('scroll', onScroll, {passive:true});
 
 /* 主题（由右上角菜单触发） */
 function applyThemeIcon(){ const t=document.body.dataset.theme, el=$('menuTheme'); if(el){const i=el.querySelector('i'); if(i)i.className=t==='dark'?'fa-solid fa-sun':'fa-solid fa-moon';} }
@@ -616,6 +797,11 @@ function greet(){
   const gh=$('greetHi'); if(gh)gh.textContent=hi;
   const wd=['周日','周一','周二','周三','周四','周五','周六'][new Date().getDay()];
   const hd=$('headerDate'); if(hd)hd.textContent=`${new Date().getMonth()+1}月${new Date().getDate()}日 · ${wd}`;
+  const now=Date.now();
+  const pend=(state.todos||[]).filter(t=>!t.done).length;
+  const over=(state.todos||[]).filter(t=>isOverdue(t,now)).length;
+  const gp=$('greetPend'); if(gp)gp.textContent=pend;
+  const go=$('greetOver'); if(go)go.textContent=over;
 }
 
 /* 模态框 */
@@ -658,22 +844,27 @@ function openMemoForm(id){
   const tags=edit?[...(edit.tags||[])]:[];
   window.__memoImages=edit?[...(edit.images||[])]:[];
   openModal(`<h3><i class="fa-solid fa-note-sticky"></i> ${edit?'编辑备忘':'新建备忘'}</h3>
-    <div class="form-group"><label>标题</label><input id="m-title" value="${edit?esc(edit.title):''}" placeholder=""></div>
-    <div class="form-group"><label>内容</label><textarea id="m-content" placeholder="">${edit?esc(edit.content):''}</textarea></div>
+    <div class="form-group"><label>内容</label><textarea id="m-content" style="min-height:170px" placeholder="写点什么…">${edit?esc(edit.content):''}</textarea></div>
     <div class="form-group"><label>分类标签</label><div class="tag-input-wrap" id="m-tagwrap"><input id="m-tagin" placeholder=""></div></div>
     ${imgBlock('memo', window.__memoImages)}
     <div class="form-actions"><button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveMemo('${edit?id:''}')">保存</button></div>`);
   attachTagInput('m-tagwrap','m-tagin',tags,[...new Set(state.memos.flatMap(m=>m.tags||[]))].sort());
-  $('m-title').focus(); window.__memoTags=tags;
+  $('m-content').focus(); window.__memoTags=tags;
 }
-function saveMemo(id){ const title=$('m-title').value.trim(),content=$('m-content').value.trim(),tags=window.__memoTags||[],images=window.__memoImages||[]; if(!title&&!content){toast('标题和内容不能都为空','error');return;} if(id){const m=state.memos.find(x=>x.id===id);Object.assign(m,{title,content,tags,images,updatedAt:nowISO()});}else{state.memos.unshift({id:uid(),title,content,tags,images,createdAt:nowISO(),updatedAt:nowISO()});} save();renderAll();closeModal();toast('已保存','success'); }
-function deleteMemo(id){ confirmDialog('删除备忘','确定要删除这条备忘吗？此操作不可恢复。').then(ok=>{if(!ok)return;state.memos=state.memos.filter(m=>m.id!==id);save();renderAll();toast('已删除');}); }
+function saveMemo(id){ const content=$('m-content').value.trim(),tags=window.__memoTags||[],images=window.__memoImages||[]; if(!content){toast('内容不能为空','error');return;} const title=''; if(id){const m=state.memos.find(x=>x.id===id);if(m)Object.assign(m,{title,content,tags,images,updatedAt:nowISO()});}else{state.memos.unshift({id:uid(),title,content,tags,images,pinned:false,createdAt:nowISO(),updatedAt:nowISO()});} save();renderAll();closeModal();toast('已保存','success'); }
+function deleteMemo(id){ const m=state.memos.find(x=>x.id===id); if(!m)return; confirmDialog('移入回收站','将「'+firstLine(m.content).slice(0,12)+'」移入回收站，30 天内可恢复。').then(ok=>{ if(!ok)return; state.trash.unshift(Object.assign({},m,{deletedAt:nowISO()})); state.memos=state.memos.filter(x=>x.id!==id); save();renderAll();toast('已移入回收站'); }); }
+function cleanupTrash(){ const cut=Date.now()-30*864e5; const before=state.trash.length; state.trash=state.trash.filter(x=>new Date(x.deletedAt).getTime()>cut); if(state.trash.length!==before)save(); }
+function trashLeft(iso){ const ms=30*864e5-(Date.now()-new Date(iso).getTime()); return ms>0?Math.ceil(ms/864e5):0; }
+function openTrash(){ cleanupTrash(); const items=state.trash; const body=items.length?items.map(m=>`<div class="trash-item"><div class="trash-main"><div class="card-title">${esc(firstLine(m.content)||'备忘')}</div><div class="card-meta">删除于 ${fmtTime(m.deletedAt)} · ${trashLeft(m.deletedAt)} 天后清除</div></div><div class="trash-btns"><button class="btn btn-sm btn-outline" onclick="restoreMemo('${m.id}')"><i class="fa-solid fa-rotate-left"></i> 恢复</button><button class="btn btn-sm btn-danger" onclick="purgeMemo('${m.id}')"><i class="fa-solid fa-xmark"></i></button></div></div>`).join(''):`<div class="empty-state" style="padding:30px 0"><i class="fa-solid fa-recycle"></i><p>回收站是空的</p></div>`; openModal(`<h3><i class="fa-solid fa-trash-can"></i> 回收站</h3><p class="modal-hint">删除的备忘会保留 30 天，期间可恢复；超时将自动清除。</p><div class="trash-list">${body}</div>${items.length?`<div class="form-actions" style="margin-top:14px;justify-content:flex-end"><button class="btn btn-danger" onclick="emptyTrash()"><i class="fa-solid fa-trash"></i> 清空回收站</button></div>`:''}`); }
+function restoreMemo(id){ const i=state.trash.findIndex(x=>x.id===id); if(i<0)return; const m=state.trash[i]; delete m.deletedAt; state.memos.unshift(m); state.trash.splice(i,1); save();renderAll();openTrash();toast('已恢复','success'); }
+function purgeMemo(id){ const i=state.trash.findIndex(x=>x.id===id); if(i<0)return; state.trash.splice(i,1); save();renderAll();openTrash();toast('已彻底删除'); }
+function emptyTrash(){ confirmDialog('清空回收站','将永久删除回收站中的全部 '+state.trash.length+' 条备忘，不可恢复。').then(ok=>{ if(!ok)return; state.trash=[]; save();renderAll();openTrash();toast('回收站已清空'); }); }
 function openMemoDetail(id){
   const m=state.memos.find(x=>x.id===id); if(!m)return;
   const tags=[...(m.tags||[])].map(t=>`<span class="tag" style="cursor:default">#${esc(t)}</span>`).join('');
   const updated=m.updatedAt&&m.updatedAt!==m.createdAt?` · 更新于 ${fmtTime(m.updatedAt)}`:'';
   const imgs=(m.images||[]).map(im=>`<img src="${im}" class="detail-img">`).join('');
-  $('detailScreen').innerHTML=`<div class="detail-bar"><button class="icon-btn" onclick="closeDetail()" title="返回列表"><i class="fa-solid fa-arrow-left"></i></button><span class="detail-title">备忘</span><div style="margin-left:auto;display:flex;gap:8px"><button class="btn btn-outline btn-sm" onclick="closeDetail();deleteMemo('${m.id}')">删除</button><button class="btn btn-primary btn-sm" onclick="closeDetail();openMemoForm('${m.id}')">编辑</button></div></div>
+  $('detailScreen').innerHTML=`<div class="detail-bar"><button class="icon-btn" onclick="closeDetail()" title="返回列表"><i class="fa-solid fa-arrow-left"></i></button><span class="detail-title">备忘</span><div style="margin-left:auto;display:flex;gap:8px"><button class="btn btn-outline btn-sm" onclick="toggleMemoPin('${m.id}');openMemoDetail('${m.id}')" title="${m.pinned?'取消置顶':'置顶'}">${m.pinned?'<i class="fa-solid fa-thumbtack-slash"></i>':'<i class="fa-solid fa-thumbtack"></i>'}</button><button class="btn btn-outline btn-sm" onclick="closeDetail();deleteMemo('${m.id}')">删除</button><button class="btn btn-primary btn-sm" onclick="closeDetail();openMemoForm('${m.id}')">编辑</button></div></div>
     <div class="detail-scroll"><div class="detail-view">
       ${m.title?`<h2 class="detail-h">${esc(m.title)}</h2>`:''}
       ${tags?`<div class="card-tags" style="margin-bottom:10px">${tags}</div>`:''}
@@ -716,10 +907,215 @@ function renderMemos(){
   const list=$('memoList');
   let arr=state.memos.slice(); if(memoFilterTags.length) arr=arr.filter(m=>(m.tags||[]).some(t=>memoFilterTags.includes(t)));
   if(searchQuery){const q=searchQuery;arr=arr.filter(m=>(m.title||'').toLowerCase().includes(q)||(m.content||'').toLowerCase().includes(q)||(m.tags||[]).some(t=>t.toLowerCase().includes(q)));}
+  arr.sort((a,b)=>{ if(!!a.pinned!==!!b.pinned)return a.pinned?-1:1; return new Date(b.updatedAt)-new Date(a.updatedAt); });
   $('memoEmpty').style.display=arr.length?'none':'block';
   if(!arr.length){list.innerHTML='';return;}
-  list.innerHTML=arr.map(m=>`<div class="card memo-card" onclick="openMemoDetail('${m.id}')"><div><div class="card-title">${esc(m.title||'(无标题)')}</div><div class="card-meta"><i class="fa-regular fa-clock" style="font-size:10px"></i> ${fmtTime(m.createdAt)}</div></div>${firstLine(m.content)?`<div class="card-body">${esc(firstLine(m.content))}</div>`:''}${m.images&&m.images.length?`<div class="card-imgs">${m.images.slice(0,3).map(im=>`<img src="${im}" class="card-img-thumb">`).join('')}${m.images.length>3?`<span class="card-img-more">+${m.images.length-3}</span>`:''}</div>`:''}${m.tags&&m.tags.length?`<div class="card-tags">${m.tags.map(t=>`<span class="tag" style="cursor:default">#${esc(t)}</span>`).join('')}</div>`:''}<i class="fa-solid fa-chevron-right memo-go"></i></div>`).join('');
+  list.innerHTML=arr.map(m=>{ const fl=firstLine(m.content)||'备忘'; const rest=(m.content||'').split('\n').map(s=>s.trim()).filter(Boolean).slice(1,2)[0]||''; return `<div class="card memo-card${m.pinned?' pinned':''}" onclick="openMemoDetail('${m.id}')">
+    ${m.pinned?'<span class="pin-flag"><i class="fa-solid fa-thumbtack"></i></span>':''}
+    <div><div class="card-title">${esc(fl)}</div><div class="card-meta"><i class="fa-regular fa-clock" style="font-size:10px"></i> ${fmtTime(m.createdAt)}</div></div>
+    ${rest?`<div class="card-body">${esc(rest)}</div>`:''}
+    ${m.images&&m.images.length?`<div class="card-imgs">${m.images.slice(0,3).map(im=>`<img src="${im}" class="card-img-thumb">`).join('')}${m.images.length>3?`<span class="card-img-more">+${m.images.length-3}</span>`:''}</div>`:''}
+    ${m.tags&&m.tags.length?`<div class="card-tags">${m.tags.map(t=>`<span class="tag" style="cursor:default">#${esc(t)}</span>`).join('')}</div>`:''}
+    <button class="memo-pin" onclick="event.stopPropagation();toggleMemoPin('${m.id}')" title="${m.pinned?'取消置顶':'置顶'}"><i class="fa-solid fa-thumbtack"></i></button>
+    <i class="fa-solid fa-chevron-right memo-go"></i></div>`; }).join('');
 }
+function toggleMemoPin(id){ const m=state.memos.find(x=>x.id===id); if(!m)return; m.pinned=!m.pinned; m.updatedAt=nowISO(); save();renderMemos(); }
+
+/* ===== 模块零：待办 + 打卡 ===== */
+let todoFilter='all', lastPriority='none';
+function todoStatusClass(t,now){
+  if(t.done)return 's-done';
+  if(t.countdown){ if(t.targetDate&&t.targetDate<now)return 's-over'; return 's-soon'; }
+  if(isOverdue(t,now))return 's-over';
+  if(!t.noTime&&t.nextRemindAt){ const d=new Date(t.nextRemindAt),n=new Date(now); if(d.toDateString()===n.toDateString())return 's-today'; }
+  return 's-soon';
+}
+function countdownStr(ts,now){ if(!ts)return ''; const days=Math.ceil((ts-now)/86400000); if(days>0)return `还有 ${days} 天`; if(days===0)return '就是今天'; return `已过 ${Math.abs(days)} 天`; }
+function todayStr(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function ensureCheckin(){
+  const cs=state.checkinState||{date:'',done:{}};
+  if(!cs.date||cs.date!==todayStr()){ cs.date=todayStr(); cs.done={}; }
+  (state.checkinDefs||[]).forEach(d=>{ if(typeof cs.done[d.id]==='undefined') cs.done[d.id]=false; });
+  state.checkinState=cs;
+}
+function computeNext(base,repeat,customDays,now){
+  let t=new Date(base),guard=0;
+  while(t.getTime()<=now&&guard<5000){
+    if(repeat==='daily')t.setDate(t.getDate()+1);
+    else if(repeat==='weekly')t.setDate(t.getDate()+7);
+    else if(repeat==='monthly')t.setMonth(t.getMonth()+1);
+    else if(repeat==='custom')t.setDate(t.getDate()+(+customDays||1));
+    else { t=new Date(now+1000); break; } guard++;
+  }
+  return t.getTime();
+}
+function isOverdue(t,now){ if(t.done||t.noTime||t.nextRemindAt==null)return false; return t.nextRemindAt<now; }
+function todoFmt(ts){ const d=new Date(ts),p=n=>String(n).padStart(2,'0'),now=new Date();
+  const sameDay=d.toDateString()===now.toDateString(),tomorrow=new Date(now);tomorrow.setDate(now.getDate()+1);
+  const isTom=d.toDateString()===tomorrow.toDateString();
+  let prefix=sameDay?'今天':isTom?'明天':`${d.getMonth()+1}月${d.getDate()}日`;
+  return `${prefix} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function repLabel(t){ if(t.repeat==='none')return''; if(t.repeat==='daily')return'每天'; if(t.repeat==='weekly')return'每周'; if(t.repeat==='monthly')return'每月'; if(t.repeat==='custom')return`每${t.customDays}天`; return''; }
+function leftTime(t,now){ const diff=t.nextRemindAt-now; if(diff<=0)return''; const m=Math.floor(diff/60000); if(m<60)return m+'分钟'; const h=Math.floor(m/60); if(h<24)return h+'小时'+(m%60)+'分'; const d=Math.floor(h/24); return d+'天'+(h%24)+'小时'; }
+
+/* 待办表单 */
+function openTodoForm(id){
+  const edit=id?state.todos.find(x=>x.id===id):null;
+  const n2=new Date();n2.setMinutes(n2.getMinutes()+30);
+  const defTime=`${n2.getFullYear()}-${String(n2.getMonth()+1).padStart(2,'0')}-${String(n2.getDate()).padStart(2,'0')}T${String(n2.getHours()).padStart(2,'0')}:${String(n2.getMinutes()).padStart(2,'0')}`;
+  const cd=edit&&edit.countdown&&edit.targetDate?new Date(edit.targetDate):n2;
+  const cdVal=`${cd.getFullYear()}-${String(cd.getMonth()+1).padStart(2,'0')}-${String(cd.getDate()).padStart(2,'0')}`;
+  const pr=edit?edit.priority||'none':(state.__lastPriority||'none');
+  const isCd=!!(edit&&edit.countdown);
+  openModal(`<h3><i class="fa-solid fa-list-check"></i> ${edit?'编辑待办':'新建待办'}</h3>
+    <div class="form-group"><label>事项</label><input id="td-title" value="${edit?esc(edit.title):''}" placeholder="写点什么…" maxlength="80"></div>
+    <div class="form-group"><label>优先级</label>
+      <div class="prio-row" id="td-prio">
+        <button type="button" class="prio-btn${pr==='none'?' active':''}" data-p="none">无</button>
+        <button type="button" class="prio-btn low${pr==='low'?' active':''}" data-p="low">低</button>
+        <button type="button" class="prio-btn mid${pr==='mid'?' active':''}" data-p="mid">中</button>
+        <button type="button" class="prio-btn high${pr==='high'?' active':''}" data-p="high">高</button>
+      </div>
+    </div>
+    <div class="form-group"><label class="switch-row"><span>设为倒数日</span><label class="switch"><input type="checkbox" id="td-count" ${isCd?'checked':''}><span class="slider"></span></label></label></div>
+    <div id="td-normal">
+      <div class="form-group"><label>提醒时间</label><input id="td-time" type="datetime-local" value="${edit&&(edit.nextRemindAt&&!edit.noTime)?new Date(edit.nextRemindAt).toISOString().slice(0,16):defTime}"></div>
+      <div class="form-group"><label>循环</label>
+        <select id="td-repeat">
+          <option value="none" ${edit&&edit.repeat==='none'?'selected':''}>不循环</option>
+          <option value="daily" ${edit&&edit.repeat==='daily'?'selected':''}>每天</option>
+          <option value="weekly" ${edit&&edit.repeat==='weekly'?'selected':''}>每周</option>
+          <option value="monthly" ${edit&&edit.repeat==='monthly'?'selected':''}>每月</option>
+          <option value="custom" ${edit&&edit.repeat==='custom'?'selected':''}>自定义天数</option>
+        </select>
+        <input id="td-custom" type="number" min="1" max="365" value="${edit?edit.customDays:2}" style="display:${edit&&edit.repeat==='custom'?'block':'none'};margin-top:6px" placeholder="每隔几天">
+      </div>
+    </div>
+    <div class="form-group" id="td-countwrap" style="display:${isCd?'block':'none'}"><label>目标日期</label><input id="td-date" type="date" value="${cdVal}"></div>
+    <div class="form-actions"><button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveTodo('${edit?id:''}')">保存</button></div>`);
+  $('td-repeat').onchange=function(){ $('td-custom').style.display=this.value==='custom'?'block':'none'; };
+  $('td-prio').querySelectorAll('.prio-btn').forEach(b=>b.onclick=()=>{ $('td-prio').querySelectorAll('.prio-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); });
+  $('td-count').onchange=function(){ const on=this.checked; $('td-normal').style.display=on?'none':'block'; $('td-countwrap').style.display=on?'block':'none'; };
+  $('td-title').focus();
+}
+function saveTodo(id){
+  state.todos=state.todos||[];
+  const title=$('td-title').value.trim(),timeVal=$('td-time').value,repeat=$('td-repeat').value,customDays=$('td-custom').value;
+  const prEl=document.querySelector('#td-prio .prio-btn.active'); const priority=prEl?prEl.dataset.p:'none';
+  const countdown=$('td-count')?$('td-count').checked:false;
+  const dateVal=$('td-date')?$('td-date').value:'';
+  if(!title){toast('事项不能为空','error');return;}
+  const noTime=!timeVal,base=timeVal?new Date(timeVal).getTime():null,now=Date.now();
+  let next=null;if(!countdown){ if(!noTime&&repeat!=='none')next=computeNext(base,repeat,customDays,now);else if(!noTime)next=base; }
+  const targetDate=countdown&&dateVal?new Date(dateVal+'T00:00:00').getTime():null;
+  if(id){const t=state.todos.find(x=>x.id===id);Object.assign(t,{title,repeat,customDays:+customDays,noTime,nextRemindAt:next,updatedAt:nowISO(),priority,countdown,targetDate});}
+  else{state.todos.unshift({id:uid(),title,repeat,customDays:+customDays,noTime,createdAt:nowISO(),nextRemindAt:next,done:false,completedAt:null,priority,countdown,targetDate});}
+  lastPriority=priority;
+  save();renderAll();closeModal();toast('已保存','success');
+}
+function deleteTodo(id){ confirmDialog('删除待办','确定要删除这条待办吗？').then(ok=>{if(!ok)return;state.todos=state.todos.filter(x=>x.id!==id);save();renderAll();toast('已删除');}); }
+function toggleTodo(id){ const t=state.todos.find(x=>x.id===id);if(!t)return;
+  if(t.repeat==='none'||t.noTime){ t.done=!t.done;t.completedAt=t.done?Date.now():null; }
+  else{ if(!t.done){t.done=true;t.completedAt=Date.now();t.nextRemindAt=computeNext(t.nextRemindAt,t.repeat,t.customDays,Date.now());} else{t.done=false;t.completedAt=null;} }
+  save();renderTodos();renderTodoStats();
+}
+function removeTodo(id){ state.todos=state.todos.filter(x=>x.id!==id);save();renderAll();toast('已删除'); }
+function clearDoneTodos(){ const n=state.todos.filter(x=>x.done).length; if(!n){toast('没有已完成的待办');return;} state.todos=state.todos.filter(x=>!x.done);save();renderAll();confettiBurst();toast('已清除已完成'); }
+function confettiBurst(){ const colors=['#2563EB','#54c2a0','#f0b35a','#f1789c','#8a6fe0','#5B8DEF']; const cx=innerWidth/2, cy=innerHeight*0.72; for(let i=0;i<20;i++){ const p=document.createElement('div'); p.className='confetti'; const s=6+Math.random()*6; p.style.left=(cx+(Math.random()*140-70))+'px'; p.style.top=cy+'px'; p.style.width=s+'px'; p.style.height=s+'px'; p.style.background=colors[i%colors.length]; p.style.transform=`rotate(${Math.random()*360}deg)`; p.style.animationDelay=(Math.random()*0.12)+'s'; document.body.appendChild(p); setTimeout(()=>p.remove(),1000); } }
+
+/* 渲染 */
+function renderTodoStats(){
+  const now=Date.now(),total=state.todos.length,done=state.todos.filter(t=>t.done).length,over=state.todos.filter(t=>isOverdue(t,now)).length,pend=total-done;
+  $('todoStats').innerHTML=`<div class="todo-stat"><b>${total}</b><span>全部</span></div><div class="todo-stat"><b>${pend}</b><span>待办</span></div><div class="todo-stat overdue"><b>${over}</b><span>超时</span></div><div class="todo-stat done"><b>${done}</b><span>完成</span></div>`;
+}
+function renderTodos(){
+  ensureCheckin();const now=Date.now();
+  state.todos.forEach(t=>{if(t.repeat!=='none'&&!t.noTime&&t.done&&now>=t.nextRemindAt){t.done=false;t.completedAt=null;}});
+  let arr=state.todos.slice();
+  if(todoFilter==='pend')arr=arr.filter(t=>!t.done);
+  else if(todoFilter==='over')arr=arr.filter(t=>isOverdue(t,now));
+  else if(todoFilter==='done')arr=arr.filter(t=>t.done);
+  else if(todoFilter==='count')arr=arr.filter(t=>t.countdown);
+  if(searchQuery){const q=searchQuery;arr=arr.filter(t=>t.title.toLowerCase().includes(q));}
+  arr.sort((a,b)=>(a.done?1:0)-(b.done?1:0)); // 手动拖拽顺序；已完成沉底
+  const list=$('todoList'),empty=$('todoEmpty');
+  empty.style.display=(!arr.length)?'block':'none';
+  if(!arr.length){list.innerHTML='';return;}
+  list.innerHTML=arr.map(t=>{
+    const over=isOverdue(t,now), cd=!!t.countdown, st=todoStatusClass(t,now), prio=t.priority||'none';
+    const prioBadge=prio==='none'?'':`<span class="todo-badge prio ${prio}">${prio==='high'?'高':prio==='mid'?'中':'低'}</span>`;
+    const cdStr=cd?countdownStr(t.targetDate,now):'';
+    const timeBadge=cd?'<span class="todo-badge left cd-badge">⏳ '+cdStr+'</span>':(t.noTime?'<span class="todo-badge left">🕊 不限时</span>':`<span class="todo-badge left">⏰ ${todoFmt(t.nextRemindAt)}</span>`);
+    const leftStr=t.done?(cd?'已发生':(t.noTime?'已完成':new Date(t.completedAt).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'})+' 完成')):(over?'已超时':(cd?cdStr:leftTime(t,now)));
+    return `<div class="todo-item${over?' overdue':''}${t.done?' done':''}${st?' '+st:''}" draggable="true" data-id="${t.id}">
+      <div class="todo-check" onclick="event.stopPropagation();toggleTodo('${t.id}')">${t.done?'✓':''}</div>
+      <div class="todo-body" onclick="openTodoDetail('${t.id}')">
+        <div class="todo-title">${esc(t.title)}</div>
+        <div class="todo-meta">${over&&!cd?'<span class="todo-badge over">⚠ 超时</span>':''}${prioBadge}${timeBadge}${t.repeat!=='none'&&!t.noTime&&!cd?`<span class="todo-badge rep">🔁 ${repLabel(t)}</span>`:''}<span class="todo-badge left">${leftStr}</span></div>
+      </div>
+      <button class="todo-del" onclick="event.stopPropagation();removeTodo('${t.id}')" title="删除">×</button>
+    </div>`;
+  }).join('');
+  // 更新 tab 计数
+  document.querySelectorAll('#todoTabs .todo-tab').forEach(tab=>{
+    const f=tab.dataset.f,c=(f==='all'?state.todos.length:f==='pend'?state.todos.filter(x=>!x.done).length:f==='over'?state.todos.filter(x=>isOverdue(x,now)).length:f==='done'?state.todos.filter(x=>x.done).length:f==='count'?state.todos.filter(x=>x.countdown).length:0);
+    tab.textContent=(f==='all'?'全部':f==='pend'?'待办':f==='over'?'超时':f==='done'?'已完成':'倒数')+`(${c})`;
+  });
+}
+function openTodoDetail(id){ /* 待办详情：直接编辑 */openTodoForm(id); }
+
+/* 待办拖拽排序 */
+let _dragId=null;
+function setupTodoDnD(){
+  const tl=$('todoList'); if(!tl)return;
+  tl.addEventListener('dragstart',e=>{ const it=e.target.closest('.todo-item'); if(!it)return; _dragId=it.dataset.id; it.classList.add('dragging'); try{e.dataTransfer.setData('text/plain',_dragId);}catch(_){} e.dataTransfer.effectAllowed='move'; });
+  tl.addEventListener('dragend',e=>{ const it=e.target.closest('.todo-item'); if(it)it.classList.remove('dragging'); _dragId=null; });
+  tl.addEventListener('dragover',e=>{ if(_dragId)e.preventDefault(); });
+  tl.addEventListener('drop',e=>{ e.preventDefault(); const it=e.target.closest('.todo-item'); if(!it||!_dragId||it.dataset.id===_dragId)return; const from=state.todos.findIndex(x=>x.id===_dragId); const to=state.todos.findIndex(x=>x.id===it.dataset.id); if(from<0||to<0)return; const m=state.todos.splice(from,1)[0]; state.todos.splice(to,0,m); _dragId=null; save();renderTodos();renderTodoStats(); });
+}
+
+/* 打卡渲染与交互 */
+function renderCheckins(){
+  ensureCheckin();const cs=state.checkinState,list=$('checkinList');
+  const defs=state.checkinDefs||[];if(!defs.length){list.innerHTML='<li style="color:var(--text-3);font-size:12px;padding:8px 0">暂无打卡项，点下方新增</li>';$('checkinSub').textContent='';return;}
+  let cnt=0;list.innerHTML='';
+  defs.forEach(d=>{
+    const done=!!cs.done[d.id];if(done)cnt++;
+    list.innerHTML+=`<li class="checkin-item${done?' done':''}">
+      <div class="todo-check" onclick="toggleCheckin('${d.id}')">${done?'✓':''}</div>
+      <div class="ci-body"><div class="ci-title${done?' done':''}">${esc(d.icon||'')} ${esc(d.title)}</div></div>
+      ${d.url?`<a class="ci-link" href="${esc(d.url)}" target="_blank" rel="noopener">▶ 跟练</a>`:''}
+      <button class="ci-edit" onclick="openCheckinEdit('${d.id}')" title="编辑">✏️</button>
+    </li>`;
+  });
+  $('checkinSub').textContent=`今日 ${cnt}/${defs.length} 已完成 · 每天自动重置`;
+}
+function toggleCheckin(id){ ensureCheckin();state.checkinState.done[id]=!state.checkinState.done[id];save();renderCheckins(); }
+let _editingCiId=null;
+function openCheckinEdit(id){
+  const isNew=!id;_editingCiId=id||null;
+  const d=isNew?{title:'',icon:'💧',url:''}:((state.checkinDefs||[]).find(x=>x.id===id)||{title:'',icon:'💧',url:''});
+  openModal(`<h3><i class="fa-solid fa-calendar-check"></i> ${isNew?'新增打卡项':'编辑打卡项'}</h3>
+    <div class="form-group"><label>名称</label><input id="ciTitle" value="${esc(d.title)}" maxlength="20"></div>
+    <div class="form-group"><label>图标（一个 emoji）</label><input id="ciIcon" value="${esc(d.icon)}" maxlength="4" placeholder="💧"></div>
+    <div class="form-group"><label>视频链接</label><input id="ciUrl" type="url" value="${esc(d.url)}" placeholder="https://..."></div>
+    <div class="form-actions"><button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveCheckinDef()">保存</button>${!isNew?'<button class="btn btn-danger" onclick="deleteCheckinDef()">删除</button>':''}</div>`);
+  $('ciTitle').focus();
+}
+function saveCheckinDef(){
+  const title=$('ciTitle').value.trim(),icon=$('ciIcon').value.trim()||'💧',url=$('ciUrl').value.trim();
+  if(!title){toast('名称不能为空','error');return;}
+  if(_editingCiId){const d=(state.checkinDefs||[]).find(x=>x.id===_editingCiId);if(d){d.title=title;d.icon=icon;d.url=url;}}
+  else{(state.checkinDefs||(state.checkinDefs=[])).push({id:'c_'+Date.now().toString(36),title,icon,url});}
+  save();ensureCheckin();renderCheckins();closeModal();toast('已保存','success');
+}
+function deleteCheckinDef(){ if(!_editingCiId)return;confirmDialog('删除打卡项','确定删除？').then(ok=>{if(!ok)return;state.checkinDefs=(state.checkinDefs||[]).filter(x=>x.id!==_editingCiId);delete(state.checkinState||{}).done[_editingCiId];save();renderCheckins();closeModal();}); }
+
+/* 待办 tab 切换 */
+document.addEventListener('click',e=>{
+  const tab=e.target.closest('.todo-tab');if(tab){todoFilter=tab.dataset.f;document.querySelectorAll('.todo-tab').forEach(x=>x.classList.remove('active'));tab.classList.add('active');renderTodos();}
+});
 
 /* 模块二：银行卡 */
 function cardTypeOptions(sel){ return ['借记卡','信用卡'].map(t=>`<option ${t===sel?'selected':''}>${t}</option>`).join(''); }
@@ -799,6 +1195,9 @@ function renderBanks(){
   list.innerHTML=names.map(name=>`<div class="bank-group"><div class="bank-group-title"><i class="fa-solid fa-building-columns"></i> ${esc(name)} <span class="count">${groups[name].length} 张</span></div>${groups[name].map(b=>renderBankCard(b)).join('')}</div>`).join('');
 }
 function formatCard(num){ if(!num)return''; const s=String(num).replace(/\s/g,''); return s.replace(/(.{4})(?=.)/g,'$1 ').trim(); }
+function copyText(text,msg){ if(text==null||text===''){toast('没有可复制的内容','error');return;} text=String(text); const done=()=>toast(msg||'已复制','success'); if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done).catch(()=>fallbackCopy(text,done)); } else fallbackCopy(text,done); }
+function fallbackCopy(text,done){ const ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.top='-999px'; ta.style.opacity='0'; document.body.appendChild(ta); ta.focus(); ta.select(); try{ document.execCommand('copy'); done(); }catch(e){ toast('复制失败','error'); } ta.remove(); }
+function toggleCVV(id){ if(revealedCVV.has(id))revealedCVV.delete(id); else revealedCVV.add(id); renderBanks(); }
 function bankAccent(name){
   const dark=document.body.dataset.theme==='dark';
   const offsets=[0,-30,26,-58,46,14,-18,38]; // 围绕主题蓝的同族相位（蓝/天蓝/青/靛/紫罗兰）
@@ -823,9 +1222,9 @@ function renderBankCard(b){
   if(b.billingDay)head.push(`<span class="b-bill">账单 ${b.billingDay}号</span>`);
   head.push(`<span class="b-type-pill">${esc(b.cardType||'')}</span>`);
   const fields=[];
-  fields.push(`<span class="b-num">${esc(formatCard(b.cardNumber))}</span>`);
+  if(b.cardNumber)fields.push(`<span class="b-num copyable" onclick="copyText('${b.cardNumber}','卡号已复制')" title="点击复制卡号"><span class="b-num-txt">${esc(formatCard(b.cardNumber))}</span><i class="fa-regular fa-copy b-copy"></i></span>`);
   if(b.validThru)fields.push(`<span class="b-meta"><b>有效期</b>${esc(b.validThru)}</span>`);
-  if(b.cvc)fields.push(`<span class="b-meta"><b>CVC</b>${esc(b.cvc)}</span>`);
+  if(b.cvc){ const cv=revealedCVV.has(b.id); fields.push(`<span class="b-meta b-cvc" onclick="toggleCVV('${b.id}')" title="${cv?'点击隐藏':'点击显示'}"><b>CVC</b><span class="cvc-val">${cv?esc(b.cvc):'•••'}</span><i class="fa-solid ${cv?'fa-eye-slash':'fa-eye'} b-eye"></i></span>`); }
   if(b.remark)fields.push(`<span class="b-meta b-remark"><b>备注</b>${esc(b.remark)}</span>`);
   return`<div class="card ${cls}" style="--accent:${ac}"><div class="b-top"><div style="flex:1;display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0"><span class="b-dot" style="background:${ac}"></span>${head.join('')}${alerts}</div><div class="card-actions"><button class="icon-btn" onclick="event.stopPropagation();openBankForm('${b.id}')" title="编辑"><i class="fa-solid fa-pen-to-square"></i></button><button class="icon-btn" onclick="event.stopPropagation();deleteBank('${b.id}')" title="删除"><i class="fa-solid fa-trash-can"></i></button></div></div><div class="b-bot">${fields.join('')}</div></div>`;
 }
@@ -833,9 +1232,10 @@ function openBankDetail(id){
   const b=state.banks.find(x=>x.id===id); if(!b)return;
   const ac=bankAccent(b.bankName);
   const exp=expiryInfo(b.validThru),rem=billingReminder(b),repaid=isRepaid(b);
-  const kv=[['卡号',esc(formatCard(b.cardNumber))]];
+  const cv=revealedCVV.has(b.id);
+  const kv=[['卡号',`<span class="copyable" onclick="copyText('${b.cardNumber}','卡号已复制')">${esc(formatCard(b.cardNumber))} <i class="fa-regular fa-copy"></i></span>`]];
   if(b.validThru)kv.push(['有效期',esc(b.validThru)]);
-  if(b.cvc)kv.push(['CVC',esc(b.cvc)]);
+  if(b.cvc)kv.push(['CVC',`<span class="b-cvc" onclick="toggleCVV('${b.id}');openBankDetail('${b.id}')">${cv?esc(b.cvc):'•••'} <i class="fa-solid ${cv?'fa-eye-slash':'fa-eye'}"></i></span>`]);
   if(b.billingDay)kv.push(['账单日','每月 '+esc(b.billingDay)+' 号']);
   if(b.ownerName)kv.push(['持卡人',esc(b.ownerName)]);
   if(b.remark)kv.push(['备注',esc(b.remark)]);
@@ -919,8 +1319,29 @@ function renderStocks(){
 }
 
 /* 搜索（顶部搜索栏实时过滤当前模块列表） */
-function onSearchInput(){ searchQuery=($('topSearch').value||'').trim().toLowerCase(); if(currentTab==='memo')renderMemos(); else if(currentTab==='bank')renderBanks(); else if(currentTab==='stock')renderStocks(); }
+function onSearchInput(){ const raw=$('topSearch').value||''; searchQuery=''; const q=raw.trim(); if(!q){ if($('gsInput'))closeModal(); return; } if($('gsInput')){ $('gsInput').value=raw; renderGlobalResults(q.toLowerCase()); } else { openGlobalSearch(raw); $('topSearch').value=''; } }
 function gotoTab(tab){ const el=document.querySelector(`.nav-item[data-tab="${tab}"]`); if(el)el.click(); }
+
+/* 全局搜索：跨全部模块聚合结果 */
+function openGlobalSearch(initQ){
+  initQ=initQ||'';
+  openModal(`<h3><i class="fa-solid fa-magnifying-glass"></i> 全局搜索</h3>
+    <div class="form-group" style="margin-bottom:10px"><input id="gsInput" value="${esc(initQ)}" placeholder="搜索待办、备忘、银行卡、笔记…" autofocus></div>
+    <div class="gs-results" id="gsResults"><div class="gs-empty">输入关键词，跨全部模块查找</div></div>`);
+  const inp=$('gsInput'); if(inp){ inp.focus(); inp.oninput=()=>renderGlobalResults(inp.value.trim().toLowerCase()); if(initQ.trim())renderGlobalResults(initQ.trim().toLowerCase()); }
+}
+function gsItem(icon,color,title,sub,onclick){ return `<div class="gs-item" onclick="${onclick}"><i class="gs-ico" style="color:${color}">${icon}</i><div class="gs-txt"><div class="gs-title">${esc(title)}</div>${sub?`<div class="gs-sub">${esc(sub)}</div>`:''}</div><i class="fa-solid fa-chevron-right gs-go"></i></div>`; }
+function renderGlobalResults(q){
+  const box=$('gsResults'); if(!box)return;
+  if(!q){ box.innerHTML='<div class="gs-empty">输入关键词，跨全部模块查找</div>'; return; }
+  const res=[];
+  state.todos.forEach(t=>{ if((t.title||'').toLowerCase().includes(q)||(t.content||'').toLowerCase().includes(q)){ const now=Date.now(); const st=t.done?'已完成':(isOverdue(t,now)?'已超时':(t.countdown?'倒数日':'待办')); res.push(['todo',`<i class="fa-solid fa-list-check"></i>`,'var(--primary)',t.title||'(待办)',st+' · 点击打开',`closeModal();gotoTab('todo');openTodoDetail('${t.id}')`]); } });
+  state.memos.forEach(m=>{ if((m.content||'').toLowerCase().includes(q)||(m.tags||[]).some(t=>t.toLowerCase().includes(q))) res.push(['memo',`<i class="fa-solid fa-note-sticky"></i>`,'#54c2a0',firstLine(m.content)||'备忘',fmtTime(m.createdAt),`closeModal();gotoTab('memo');openMemoDetail('${m.id}')`]); });
+  state.banks.forEach(b=>{ if((b.bankName||'').toLowerCase().includes(q)||(b.ownerName||'').toLowerCase().includes(q)||(b.cardNumber||'').toLowerCase().includes(q)||(b.remark||'').toLowerCase().includes(q)) res.push(['bank',`<i class="fa-solid fa-credit-card"></i>`,bankAccent(b.bankName),b.bankName||'银行卡',(b.ownerName||'')+' '+(b.cardNumber?formatCard(b.cardNumber):''),`closeModal();gotoTab('bank');openBankDetail('${b.id}')`]); });
+  state.stocks.forEach(s=>{ if((s.title||'').toLowerCase().includes(q)||(s.content||'').toLowerCase().includes(q)||(s.tags||[]).some(t=>t.toLowerCase().includes(q))) res.push(['stock',`<i class="fa-solid fa-chart-line"></i>`,'#8a6fe0',s.title||'(无标题)',fmtTime(s.createdAt),`closeModal();gotoTab('stock');openStockDetail('${s.id}')`]); });
+  if(!res.length){ box.innerHTML='<div class="gs-empty">没有匹配「'+esc(q)+'」的内容</div>'; return; }
+  box.innerHTML=res.map(r=>gsItem(r[1],r[2],r[3],r[4],r[5])).join('');
+}
 
 /* 设置（由右上角菜单触发） */
 function openSettings(){
@@ -929,6 +1350,9 @@ function openSettings(){
     <div class="settings-grid">
       <div class="set-item"><div class="set-head"><i class="fa-solid fa-circle-half-stroke"></i> 深浅主题（${t==='dark'?'深色':'浅色'}）</div><button class="btn btn-sm btn-outline" onclick="toggleTheme();openSettings();"><i class="fa-solid fa-${t==='dark'?'sun':'moon'}"></i> ${t==='dark'?'浅色':'深色'}</button></div>
       <div class="set-item"><div class="set-head"><i class="fa-solid fa-download"></i> 数据备份</div><button class="btn btn-sm btn-outline" onclick="exportData()"><i class="fa-solid fa-file-export"></i> 导出</button></div>
+      <div class="set-item"><div class="set-head"><i class="fa-solid fa-bell"></i> 系统通知（${notifyPerm==='granted'?'已开启':notifyPerm==='denied'?'已拒绝':'未开启'}）</div><div class="set-btns"><button class="btn btn-sm btn-outline" onclick="requestNotify()">${notifyPerm==='granted'?'重新授权':'开启'}</button>${notifyPerm==='granted'?'<button class="btn btn-sm btn-outline" onclick="notify(\'综合备忘录\',\'这是一条测试通知\')">测试</button>':''}</div></div>
+      <div class="set-item"><div class="set-head"><i class="fa-solid fa-clock-rotate-left"></i> 自动备份</div><button class="btn btn-sm btn-outline" onclick="restoreAutoBackup()"><i class="fa-solid fa-rotate-left"></i> 恢复</button></div>
+      <div class="set-item"><div class="set-head"><i class="fa-solid fa-trash-can"></i> 回收站（${state.trash.length}）</div><button class="btn btn-sm btn-outline" onclick="openTrash()"><i class="fa-solid fa-recycle"></i> 查看</button></div>
       <div class="set-item"><div class="set-head"><i class="fa-solid fa-upload"></i> 导入数据</div><button class="btn btn-sm btn-outline" onclick="document.getElementById('importFile').click()"><i class="fa-solid fa-file-import"></i> 导入</button><input type="file" id="importFile" accept=".json" hidden onchange="importData()"></div>
       <div class="set-item"><div class="set-head"><i class="fa-solid fa-key"></i> 修改主密码</div><button class="btn btn-sm btn-outline" onclick="openPwdModal()"><i class="fa-solid fa-rotate"></i> 修改</button></div>
       <div class="set-item set-item-danger"><div class="set-head"><i class="fa-solid fa-lock"></i> 锁定 / 清空</div><div class="set-btns"><button class="btn btn-sm btn-outline" onclick="closeModal();lockNow()">锁定</button><button class="btn btn-sm btn-danger" onclick="wipeAll()">清空</button></div></div>
@@ -937,31 +1361,38 @@ function openSettings(){
 function openPwdModal(){
   openModal(`<h3><i class="fa-solid fa-key"></i> 修改主密码</h3>
     <p class="modal-hint">修改后数据会以新密码重新加密（无需输入旧密码）。</p>
-    <div class="form-row"><input id="np1" type="password" placeholder="新主密码"><input id="np2" type="password" placeholder="确认新密码"></div>
+    <div class="form-row"><input id="np1" type="password" inputmode="numeric" placeholder="新数字密码(4-12位)"><input id="np2" type="password" inputmode="numeric" placeholder="确认新密码"></div>
     <div class="form-actions"><button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="changePassword()">修改</button></div>`);
 }
 function exportData(){ const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='memo-backup-'+new Date().toISOString().slice(0,10)+'.json'; a.click(); toast('已导出备份','success'); }
 function importData(){
   const f=$('importFile').files[0]; if(!f){toast('请先选择文件','error');return;}
   const reader=new FileReader(); reader.onload=()=>{
-    try{ const data=JSON.parse(reader.result); const merge=k=>{const m=new Map(state[k].map(x=>[x.id,x]));(data[k]||[]).forEach(x=>m.set(x.id,x));state[k]=[...m.values()];}; merge('memos');merge('banks');merge('stocks'); save();renderAll();closeModal();toast('导入完成','success'); }catch(e){toast('文件格式错误','error');}
+    try{ const data=JSON.parse(reader.result); const merge=k=>{const m=new Map(state[k].map(x=>[x.id,x]));(data[k]||[]).forEach(x=>m.set(x.id,x));state[k]=[...m.values()];}; merge('memos');merge('banks');merge('stocks');merge('todos'); save();renderAll();closeModal();toast('导入完成','success'); }catch(e){toast('文件格式错误','error');}
   }; reader.readAsText(f);
 }
+/* 系统通知（Notification API） */
+let notifyPerm='default';
+function refreshNotifyPerm(){ try{ notifyPerm=(typeof Notification!=='undefined')?Notification.permission:'denied'; }catch(e){ notifyPerm='denied'; } }
+function requestNotify(){ if(typeof Notification==='undefined'){toast('当前环境不支持系统通知','error');return;} Notification.requestPermission().then(p=>{ notifyPerm=p; if(p==='granted'){ notify('综合备忘录','系统通知已开启 ✓'); toast('通知已开启','success'); } else toast('未授权系统通知','error'); openSettings(); }); }
+function notify(title,body){ try{ if(typeof Notification!=='undefined'&&Notification.permission==='granted'){ new Notification(title,{body:body||''}); } }catch(e){} }
 async function changePassword(){
-  const p1=$('np1').value,p2=$('np2').value; if(p1.length<4){toast('密码至少4位','error');return;} if(p1!==p2){toast('两次输入不一致','error');return;}
+  const p1=$('np1').value,p2=$('np2').value;
+  if(!/^\d+$/.test(p1)){toast('密码只能是数字','error');return;}
+  if(p1.length<PIN_MIN){toast(`至少 ${PIN_MIN} 位`,'error');return;} if(p1!==p2){toast('两次输入不一致','error');return;}
   const salt=crypto.getRandomValues(new Uint8Array(16)); vaultSalt=salt; cryptoKey=await deriveKey(p1,salt);
-  const rec=await encryptObj(state,cryptoKey); await idbPut(VAULT_KEY,{salt:b64enc(salt),...rec}); closeModal();toast('密码已修改','success');
+  const rec=await encryptObj(state,cryptoKey); await idbPut(VAULT_KEY,{salt:b64enc(salt),pinLen:p1.length,...rec}); vaultPinLen=p1.length; closeModal();toast('密码已修改','success');
 }
 function wipeAll(){ confirmDialog('清空所有数据','将删除全部备忘、银行卡、笔记，且无法恢复。确定吗？').then(ok=>{if(!ok)return;idbDel(VAULT_KEY).then(()=>{toast('已清空，请重新设置密码');lockNow();});}); }
 
 /* 悬浮新建：当前模块直接新增 */
-$('fab').onclick=()=>{ if(currentTab==='bank')openBankForm(); else if(currentTab==='stock')openStockForm(); else openMemoForm(); };
+$('fab').onclick=()=>{ if(currentTab==='todo')openTodoForm(); else if(currentTab==='bank')openBankForm(); else if(currentTab==='stock')openStockForm(); else openMemoForm(); };
 
 /* 渲染 */
-function renderAll(){ greet(); renderMemoTags(); renderMemos(); renderBanks(); if(currentTab==='bank')renderBankFilter(); if(currentTab==='stock')renderStockTags(); renderStocks(); }
+function renderAll(){ cleanupTrash(); greet(); renderTodoStats();renderTodos();renderCheckins();renderMemoTags();renderMemos();renderBanks(); if(currentTab=== 'bank')renderBankFilter(); if(currentTab=== 'stock')renderStockTags(); renderStocks(); }
 
 /* 启动 */
-initTheme(); initLock();
+initTheme(); initLock(); setupTodoDnD(); refreshNotifyPerm();
 
 /* 右上角设置按钮 */
 $('settingsBtnTop').onclick=()=>{ openSettings(); };

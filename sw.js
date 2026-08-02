@@ -1,8 +1,7 @@
-const CACHE_NAME = 'memo-pwa-v7';
+const CACHE_NAME = 'memo-pwa-v8';
 const PRECACHE = [
   './',
   './index.html',
-  './memo-redesign.html',
   './manifest.webmanifest',
   './icon-192.png',
   './icon-512.png',
