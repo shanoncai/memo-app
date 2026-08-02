@@ -670,7 +670,7 @@ body{
 const DB_NAME='memo_vault_db', STORE='vault', VAULT_KEY='vault';
 let cryptoKey=null, vaultSalt=null, vaultPinLen=0;
 const DEFAULT_CHECKIN_DEFS=[{id:'eye',title:'眼部放松',icon:'💧',url:'https://v.douyin.com/0A3nxFCY0EQ/'},{id:'shake',title:'摇垮跟练',icon:'💃',url:'https://v.douyin.com/8DooryoLjrs/'},{id:'bdj',title:'八段锦跟练',icon:'🧘',url:'https://v.douyin.com/8vx_0r61WVE/'},{id:'gufa',title:'古法健身',icon:'🌿',url:'https://v.douyin.com/x4wps8yl_so/'}];
-function normalizeState(d){ d=d||{}; return { memos:Array.isArray(d.memos)?d.memos:[], banks:Array.isArray(d.banks)?d.banks:[], stocks:Array.isArray(d.stocks)?d.stocks:[], todos:Array.isArray(d.todos)?d.todos:[], trash:Array.isArray(d.trash)?d.trash:[], checkinDefs:Array.isArray(d.checkinDefs)?d.checkinDefs:DEFAULT_CHECKIN_DEFS, checkinState:(d.checkinState&&typeof d.checkinState==='object')?d.checkinState:{date:'',done:{}} }; }
+function normalizeState(d){ d=d||{}; const banks=Array.isArray(d.banks)?d.banks:[]; let bankHistory=Array.isArray(d.bankHistory)?d.bankHistory:[]; if(!bankHistory.length){ const s=new Set(banks.map(b=>b.bankName).filter(Boolean)); bankHistory=[...s]; } return { memos:Array.isArray(d.memos)?d.memos:[], banks, stocks:Array.isArray(d.stocks)?d.stocks:[], todos:Array.isArray(d.todos)?d.todos:[], trash:Array.isArray(d.trash)?d.trash:[], bankHistory, checkinDefs:Array.isArray(d.checkinDefs)?d.checkinDefs:DEFAULT_CHECKIN_DEFS, checkinState:(d.checkinState&&typeof d.checkinState==='object')?d.checkinState:{date:'',done:{}} }; }
 let state=normalizeState();
 let currentTab='todo', bankFilter='all', stockFilterTags=[], memoFilterTags=[], searchQuery='';
 let revealedCVV=new Set();
@@ -849,7 +849,7 @@ function openMemoForm(id){
     ${imgBlock('memo', window.__memoImages)}
     <div class="form-actions"><button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveMemo('${edit?id:''}')">保存</button></div>`);
   attachTagInput('m-tagwrap','m-tagin',tags,[...new Set(state.memos.flatMap(m=>m.tags||[]))].sort());
-  $('m-content').focus(); window.__memoTags=tags;
+  modalFocus('m-content'); window.__memoTags=tags;
 }
 function saveMemo(id){ const content=$('m-content').value.trim(),tags=window.__memoTags||[],images=window.__memoImages||[]; if(!content){toast('内容不能为空','error');return;} const title=''; if(id){const m=state.memos.find(x=>x.id===id);if(m)Object.assign(m,{title,content,tags,images,updatedAt:nowISO()});}else{state.memos.unshift({id:uid(),title,content,tags,images,pinned:false,createdAt:nowISO(),updatedAt:nowISO()});} save();renderAll();closeModal();toast('已保存','success'); }
 function deleteMemo(id){ const m=state.memos.find(x=>x.id===id); if(!m)return; confirmDialog('移入回收站','将「'+firstLine(m.content).slice(0,12)+'」移入回收站，30 天内可恢复。').then(ok=>{ if(!ok)return; state.trash.unshift(Object.assign({},m,{deletedAt:nowISO()})); state.memos=state.memos.filter(x=>x.id!==id); save();renderAll();toast('已移入回收站'); }); }
@@ -997,7 +997,7 @@ function openTodoForm(id){
   $('td-repeat').onchange=function(){ $('td-custom').style.display=this.value==='custom'?'block':'none'; };
   $('td-prio').querySelectorAll('.prio-btn').forEach(b=>b.onclick=()=>{ $('td-prio').querySelectorAll('.prio-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); });
   $('td-count').onchange=function(){ const on=this.checked; $('td-normal').style.display=on?'none':'block'; $('td-countwrap').style.display=on?'block':'none'; };
-  $('td-title').focus();
+  modalFocus('td-title');
 }
 function saveTodo(id){
   state.todos=state.todos||[];
@@ -1101,7 +1101,7 @@ function openCheckinEdit(id){
     <div class="form-group"><label>图标（一个 emoji）</label><input id="ciIcon" value="${esc(d.icon)}" maxlength="4" placeholder="💧"></div>
     <div class="form-group"><label>视频链接</label><input id="ciUrl" type="url" value="${esc(d.url)}" placeholder="https://..."></div>
     <div class="form-actions"><button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveCheckinDef()">保存</button>${!isNew?'<button class="btn btn-danger" onclick="deleteCheckinDef()">删除</button>':''}</div>`);
-  $('ciTitle').focus();
+  modalFocus('ciTitle');
 }
 function saveCheckinDef(){
   const title=$('ciTitle').value.trim(),icon=$('ciIcon').value.trim()||'💧',url=$('ciUrl').value.trim();
@@ -1118,17 +1118,18 @@ document.addEventListener('click',e=>{
 });
 
 /* 模块二：银行卡 */
-function cardTypeOptions(sel){ return ['借记卡','信用卡'].map(t=>`<option ${t===sel?'selected':''}>${t}</option>`).join(''); }
+function cardTypeOptions(sel){ sel=sel||'信用卡'; return ['信用卡','借记卡'].map(t=>`<option ${t===sel?'selected':''}>${t}</option>`).join(''); }
+function modalFocus(id){ if(!id)return; const el=document.getElementById(id); if(el)setTimeout(()=>el.focus(),360); }
 function openBankForm(id){
   const edit=id?state.banks.find(b=>b.id===id):null;
   openModal(`<h3><i class="fa-solid fa-credit-card"></i> ${edit?'编辑卡片':'新增卡片'}</h3>
-    <div class="form-row"><div class="form-group"><label>归属银行</label><input id="b-bank" value="${edit?esc(edit.bankName):''}" placeholder="如：工商银行"></div><div class="form-group"><label>归属人</label><input id="b-owner" value="${edit?esc(edit.ownerName):''}" placeholder="持卡人姓名"></div></div>
+    <div class="form-row"><div class="form-group"><label>归属银行</label><input id="b-bank" list="bankHistList" value="${edit?esc(edit.bankName):''}" placeholder="如：工商银行"><datalist id="bankHistList">${state.bankHistory.map(b=>`<option value="${esc(b)}">`).join('')}</datalist></div><div class="form-group"><label>归属人</label><input id="b-owner" value="${edit?esc(edit.ownerName):''}" placeholder="持卡人姓名"></div></div>
     <div class="form-row"><div class="form-group"><label>卡种</label><select id="b-type">${cardTypeOptions(edit?edit.cardType:'')}</select></div><div class="form-group"><label>卡号</label><input id="b-number" value="${edit?esc(edit.cardNumber):''}" placeholder="卡号" inputmode="numeric"></div></div>
     <div class="form-row"><div class="form-group"><label>有效期 (MM/YY)</label><input id="b-valid" value="${edit?esc(edit.validThru):''}" placeholder="如 08/29"></div><div class="form-group"><label>CVC</label><input id="b-cvc" value="${edit?esc(edit.cvc):''}" placeholder="安全码" inputmode="numeric" maxlength="4"></div></div>
     <div class="form-group"><label>账单日（每月几号）</label><input id="b-billing" type="number" min="1" max="31" value="${edit?edit.billingDay:''}" placeholder="如 15"></div>
     <div class="form-group"><label>备注</label><textarea id="b-remark" placeholder="备注信息">${edit?esc(edit.remark):''}</textarea></div>
     <div class="form-actions"><button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveBank('${edit?id:''}')">保存</button></div>`);
-  $('b-bank').focus();
+  modalFocus('b-bank');
 }
 function saveBank(id){
   const bankName=$('b-bank').value.trim(),ownerName=$('b-owner').value.trim(),cardNumber=$('b-number').value.trim(),validThru=$('b-valid').value.trim(),cvc=$('b-cvc').value.trim(),billingDay=parseInt($('b-billing').value)||'',cardType=$('b-type').value,remark=$('b-remark').value.trim();
@@ -1136,6 +1137,7 @@ function saveBank(id){
   const repaid=id?(state.banks.find(x=>x.id===id).repaid||[]).slice():[];
   if(id){ const b=state.banks.find(x=>x.id===id); Object.assign(b,{bankName,ownerName,cardNumber,validThru,cvc,billingDay,cardType,remark,repaid,updatedAt:nowISO()}); }
   else{ state.banks.unshift({id:uid(),bankName,ownerName,cardNumber,validThru,cvc,billingDay,cardType,remark,repaid,createdAt:nowISO(),updatedAt:nowISO()}); }
+  state.bankHistory=state.bankHistory||[]; if(bankName){ const hi=state.bankHistory.indexOf(bankName); if(hi>=0)state.bankHistory.splice(hi,1); state.bankHistory.unshift(bankName); if(state.bankHistory.length>50)state.bankHistory.length=50; }
   save();renderAll();closeModal();toast('已保存','success');
 }
 function deleteBank(id){ confirmDialog('删除卡片','确定要删除这张银行卡记录吗？').then(ok=>{if(!ok)return;state.banks=state.banks.filter(b=>b.id!==id);save();renderAll();toast('已删除');}); }
@@ -1192,7 +1194,7 @@ function renderBanks(){
   if(!arr.length){list.innerHTML='';return;}
   const groups={}; arr.forEach(b=>{(groups[b.bankName||'未填银行']||=[]).push(b);});
   const names=Object.keys(groups).sort((a,b)=>a.localeCompare(b,'zh'));
-  list.innerHTML=names.map(name=>`<div class="bank-group"><div class="bank-group-title"><i class="fa-solid fa-building-columns"></i> ${esc(name)} <span class="count">${groups[name].length} 张</span></div>${groups[name].map(b=>renderBankCard(b)).join('')}</div>`).join('');
+  list.innerHTML=names.map(name=>{ const items=groups[name].slice().sort((a,b)=>(a.ownerName||'').localeCompare((b.ownerName||''),'zh')); return `<div class="bank-group"><div class="bank-group-title"><i class="fa-solid fa-building-columns"></i> ${esc(name)} <span class="count">${items.length} 张</span></div>${items.map(b=>renderBankCard(b)).join('')}</div>`; }).join('');
 }
 function formatCard(num){ if(!num)return''; const s=String(num).replace(/\s/g,''); return s.replace(/(.{4})(?=.)/g,'$1 ').trim(); }
 function copyText(text,msg){ if(text==null||text===''){toast('没有可复制的内容','error');return;} text=String(text); const done=()=>toast(msg||'已复制','success'); if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done).catch(()=>fallbackCopy(text,done)); } else fallbackCopy(text,done); }
@@ -1272,7 +1274,7 @@ function openStockForm(id){
     ${imgBlock('note', window.__noteImages)}
     <div class="form-actions"><button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveStock('${edit?id:''}')">保存</button></div>`);
   attachTagInput('s-tagwrap','s-tagin',tags,[...new Set(state.stocks.flatMap(s=>s.tags||[]))].sort());
-  $('s-title').focus(); window.__stockTags=tags;
+  modalFocus('s-title'); window.__stockTags=tags;
 }
 function saveStock(id){
   const title=$('s-title').value.trim(),content=$('s-content').value.trim(),tags=window.__stockTags||[],images=window.__noteImages||[];
@@ -1326,9 +1328,9 @@ function gotoTab(tab){ const el=document.querySelector(`.nav-item[data-tab="${ta
 function openGlobalSearch(initQ){
   initQ=initQ||'';
   openModal(`<h3><i class="fa-solid fa-magnifying-glass"></i> 全局搜索</h3>
-    <div class="form-group" style="margin-bottom:10px"><input id="gsInput" value="${esc(initQ)}" placeholder="搜索待办、备忘、银行卡、笔记…" autofocus></div>
+    <div class="form-group" style="margin-bottom:10px"><input id="gsInput" value="${esc(initQ)}" placeholder="搜索待办、备忘、银行卡、笔记…"></div>
     <div class="gs-results" id="gsResults"><div class="gs-empty">输入关键词，跨全部模块查找</div></div>`);
-  const inp=$('gsInput'); if(inp){ inp.focus(); inp.oninput=()=>renderGlobalResults(inp.value.trim().toLowerCase()); if(initQ.trim())renderGlobalResults(initQ.trim().toLowerCase()); }
+  const inp=$('gsInput'); if(inp){ setTimeout(()=>inp.focus(),360); inp.oninput=()=>renderGlobalResults(inp.value.trim().toLowerCase()); if(initQ.trim())renderGlobalResults(initQ.trim().toLowerCase()); }
 }
 function gsItem(icon,color,title,sub,onclick){ return `<div class="gs-item" onclick="${onclick}"><i class="gs-ico" style="color:${color}">${icon}</i><div class="gs-txt"><div class="gs-title">${esc(title)}</div>${sub?`<div class="gs-sub">${esc(sub)}</div>`:''}</div><i class="fa-solid fa-chevron-right gs-go"></i></div>`; }
 function renderGlobalResults(q){
