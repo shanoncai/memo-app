@@ -608,12 +608,7 @@ body{
         <div class="greet">
           <h1 id="greetHi">早上好</h1>
           <p id="headerDate"></p>
-          <div class="stat-row">
-            <div class="stat"><b id="greetPend">0</b><span>待办</span></div>
-            <div class="stat"><b id="greetOver">0</b><span>超时</span></div>
-          </div>
         </div>
-        <div class="todo-stats" id="todoStats"></div>
         <div class="todo-tabs" id="todoTabs"><span class="todo-tab active" data-f="all">全部</span><span class="todo-tab" data-f="pend">待办</span><span class="todo-tab" data-f="over">超时</span><span class="todo-tab" data-f="done">已完成</span><span class="todo-tab" data-f="count">倒数</span></div>
         <div id="todoList"></div>
         <div class="empty-state" id="todoEmpty" style="display:none"><i class="fa-solid fa-list-check"></i><p>还没有待办，点右下角 + 添加</p></div>
@@ -797,11 +792,6 @@ function greet(){
   const gh=$('greetHi'); if(gh)gh.textContent=hi;
   const wd=['周日','周一','周二','周三','周四','周五','周六'][new Date().getDay()];
   const hd=$('headerDate'); if(hd)hd.textContent=`${new Date().getMonth()+1}月${new Date().getDate()}日 · ${wd}`;
-  const now=Date.now();
-  const pend=(state.todos||[]).filter(t=>!t.done).length;
-  const over=(state.todos||[]).filter(t=>isOverdue(t,now)).length;
-  const gp=$('greetPend'); if(gp)gp.textContent=pend;
-  const go=$('greetOver'); if(go)go.textContent=over;
 }
 
 /* 模态框 */
@@ -1018,17 +1008,12 @@ function deleteTodo(id){ confirmDialog('删除待办','确定要删除这条待�
 function toggleTodo(id){ const t=state.todos.find(x=>x.id===id);if(!t)return;
   if(t.repeat==='none'||t.noTime){ t.done=!t.done;t.completedAt=t.done?Date.now():null; }
   else{ if(!t.done){t.done=true;t.completedAt=Date.now();t.nextRemindAt=computeNext(t.nextRemindAt,t.repeat,t.customDays,Date.now());} else{t.done=false;t.completedAt=null;} }
-  save();renderTodos();renderTodoStats();
-}
+  save();renderTodos();}
 function removeTodo(id){ state.todos=state.todos.filter(x=>x.id!==id);save();renderAll();toast('已删除'); }
 function clearDoneTodos(){ const n=state.todos.filter(x=>x.done).length; if(!n){toast('没有已完成的待办');return;} state.todos=state.todos.filter(x=>!x.done);save();renderAll();confettiBurst();toast('已清除已完成'); }
 function confettiBurst(){ const colors=['#2563EB','#54c2a0','#f0b35a','#f1789c','#8a6fe0','#5B8DEF']; const cx=innerWidth/2, cy=innerHeight*0.72; for(let i=0;i<20;i++){ const p=document.createElement('div'); p.className='confetti'; const s=6+Math.random()*6; p.style.left=(cx+(Math.random()*140-70))+'px'; p.style.top=cy+'px'; p.style.width=s+'px'; p.style.height=s+'px'; p.style.background=colors[i%colors.length]; p.style.transform=`rotate(${Math.random()*360}deg)`; p.style.animationDelay=(Math.random()*0.12)+'s'; document.body.appendChild(p); setTimeout(()=>p.remove(),1000); } }
 
 /* 渲染 */
-function renderTodoStats(){
-  const now=Date.now(),total=state.todos.length,done=state.todos.filter(t=>t.done).length,over=state.todos.filter(t=>isOverdue(t,now)).length,pend=total-done;
-  $('todoStats').innerHTML=`<div class="todo-stat"><b>${total}</b><span>全部</span></div><div class="todo-stat"><b>${pend}</b><span>待办</span></div><div class="todo-stat overdue"><b>${over}</b><span>超时</span></div><div class="todo-stat done"><b>${done}</b><span>完成</span></div>`;
-}
 function renderTodos(){
   ensureCheckin();const now=Date.now();
   state.todos.forEach(t=>{if(t.repeat!=='none'&&!t.noTime&&t.done&&now>=t.nextRemindAt){t.done=false;t.completedAt=null;}});
@@ -1057,10 +1042,10 @@ function renderTodos(){
       <button class="todo-del" onclick="event.stopPropagation();removeTodo('${t.id}')" title="删除">×</button>
     </div>`;
   }).join('');
-  // 更新 tab 计数
+  // 更新 tab 标签
   document.querySelectorAll('#todoTabs .todo-tab').forEach(tab=>{
-    const f=tab.dataset.f,c=(f==='all'?state.todos.length:f==='pend'?state.todos.filter(x=>!x.done).length:f==='over'?state.todos.filter(x=>isOverdue(x,now)).length:f==='done'?state.todos.filter(x=>x.done).length:f==='count'?state.todos.filter(x=>x.countdown).length:0);
-    tab.textContent=(f==='all'?'全部':f==='pend'?'待办':f==='over'?'超时':f==='done'?'已完成':'倒数')+`(${c})`;
+    const f=tab.dataset.f;
+    tab.textContent=f==='all'?'全部':f==='pend'?'待办':f==='over'?'超时':f==='done'?'已完成':'倒数';
   });
 }
 function openTodoDetail(id){ /* 待办详情：直接编辑 */openTodoForm(id); }
@@ -1072,7 +1057,7 @@ function setupTodoDnD(){
   tl.addEventListener('dragstart',e=>{ const it=e.target.closest('.todo-item'); if(!it)return; _dragId=it.dataset.id; it.classList.add('dragging'); try{e.dataTransfer.setData('text/plain',_dragId);}catch(_){} e.dataTransfer.effectAllowed='move'; });
   tl.addEventListener('dragend',e=>{ const it=e.target.closest('.todo-item'); if(it)it.classList.remove('dragging'); _dragId=null; });
   tl.addEventListener('dragover',e=>{ if(_dragId)e.preventDefault(); });
-  tl.addEventListener('drop',e=>{ e.preventDefault(); const it=e.target.closest('.todo-item'); if(!it||!_dragId||it.dataset.id===_dragId)return; const from=state.todos.findIndex(x=>x.id===_dragId); const to=state.todos.findIndex(x=>x.id===it.dataset.id); if(from<0||to<0)return; const m=state.todos.splice(from,1)[0]; state.todos.splice(to,0,m); _dragId=null; save();renderTodos();renderTodoStats(); });
+  tl.addEventListener('drop',e=>{ e.preventDefault(); const it=e.target.closest('.todo-item'); if(!it||!_dragId||it.dataset.id===_dragId)return; const from=state.todos.findIndex(x=>x.id===_dragId); const to=state.todos.findIndex(x=>x.id===it.dataset.id); if(from<0||to<0)return; const m=state.todos.splice(from,1)[0]; state.todos.splice(to,0,m); _dragId=null; save();renderTodos(); });
 }
 
 /* 打卡渲染与交互 */
@@ -1391,7 +1376,7 @@ function wipeAll(){ confirmDialog('清空所有数据','将删除全部备忘、
 $('fab').onclick=()=>{ if(currentTab==='todo')openTodoForm(); else if(currentTab==='bank')openBankForm(); else if(currentTab==='stock')openStockForm(); else openMemoForm(); };
 
 /* 渲染 */
-function renderAll(){ cleanupTrash(); greet(); renderTodoStats();renderTodos();renderCheckins();renderMemoTags();renderMemos();renderBanks(); if(currentTab=== 'bank')renderBankFilter(); if(currentTab=== 'stock')renderStockTags(); renderStocks(); }
+function renderAll(){ cleanupTrash(); greet(); renderTodos();renderCheckins();renderMemoTags();renderMemos();renderBanks(); if(currentTab=== 'bank')renderBankFilter(); if(currentTab=== 'stock')renderStockTags(); renderStocks(); }
 
 /* 启动 */
 initTheme(); initLock(); setupTodoDnD(); refreshNotifyPerm();
