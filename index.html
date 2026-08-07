@@ -241,6 +241,12 @@ body{
 .bank-group-title i{font-size:15px;opacity:.75;background:var(--primary-soft);color:var(--primary-strong);
   width:28px;height:28px;border-radius:9px;display:flex;align-items:center;justify-content:center}
 .bank-group-title .count{font-size:11px;color:var(--text-3);font-weight:600;margin-left:2px}
+.filter-tag{font-size:11px;font-weight:700;color:var(--text-3);flex:none;white-space:nowrap}
+.ocr-loading{position:fixed;inset:0;z-index:500;background:rgba(255,255,255,.72);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
+.ocr-loading p{font-size:13px;font-weight:700;color:var(--text-2)}
+.ocr-spin{width:38px;height:38px;border:4px solid var(--line-strong);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+[data-theme="dark"] .ocr-loading{background:rgba(20,22,40,.72)}
 .bank-card{position:relative;padding:12px 14px;margin-bottom:9px}
 .bank-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--accent,var(--line-strong));border-radius:var(--r) 0 0 var(--r)}
 .bank-card.expiring{background:linear-gradient(135deg,var(--warning-soft) 0%,var(--surface) 70%)}
@@ -366,6 +372,25 @@ body{
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:11px}
 .form-actions{display:flex;gap:9px;justify-content:flex-end;margin-top:18px}
 .form-actions .btn{min-width:84px;justify-content:center}
+/* 展开式选项卡选择器（银行 / 归属人） */
+.sel-field{position:relative}
+.sel-trigger{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 13px;border:1.5px solid var(--line-strong);border-radius:var(--r-sm);background:var(--surface-2);color:var(--text);font-size:15.5px;font-weight:600;cursor:pointer;transition:all .2s var(--ease);min-height:46px;text-align:left;font-family:inherit}
+.sel-trigger:hover{border-color:var(--primary)}
+.sel-trigger.open{border-color:var(--primary);box-shadow:0 0 0 4px var(--primary-soft);background:var(--surface)}
+.sel-trigger.placeholder .sel-txt{color:var(--text-3);font-weight:500}
+.sel-txt{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sel-caret{font-size:11px;color:var(--text-3);transition:transform .25s var(--ease);flex:none}
+.sel-trigger.open .sel-caret{transform:rotate(180deg)}
+.sel-panel{margin-top:8px;border:1.5px solid var(--primary);border-radius:var(--r-sm);background:var(--surface);padding:10px;animation:selPop .2s var(--ease)}
+@keyframes selPop{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.sel-empty{font-size:12.5px;color:var(--text-3);padding:2px 2px 8px}
+.sel-chips{display:flex;flex-wrap:wrap;gap:7px}
+.sel-chip{border:1.5px solid var(--line-strong);background:var(--surface-2);color:var(--text-2);font-size:13px;font-weight:600;padding:7px 12px;border-radius:var(--r-pill);cursor:pointer;transition:all .16s var(--ease);white-space:nowrap;font-family:inherit}
+.sel-chip:hover{border-color:var(--primary);color:var(--primary-strong)}
+.sel-chip.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.sel-add{display:flex;gap:7px;margin-top:9px}
+.sel-add input{flex:1;min-width:0;padding:9px 11px;border:1.5px solid var(--line-strong);border-radius:var(--r-sm);background:var(--surface-2);color:var(--text);font-size:14px;outline:none;font-family:inherit}
+.sel-add input:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
 .tag-input-wrap{display:flex;flex-wrap:wrap;gap:6px;padding:8px 11px;border:1.5px solid var(--line-strong);border-radius:var(--r-sm);background:var(--surface-2);min-height:44px;align-items:center;cursor:text}
 .tag-input-wrap:focus-within{border-color:var(--primary);box-shadow:0 0 0 4px var(--primary-soft);background:var(--surface)}
 .tag-input-wrap input{flex:1;min-width:80px;border:none!important;outline:none!important;box-shadow:none!important;padding:2px 0!important;font-size:13px;background:transparent!important;color:var(--text)}
@@ -628,8 +653,13 @@ body{
       <!-- 银行卡面板 -->
       <div class="tab-panel" id="panel-bank">
         <div id="billReminders"></div>
-        <div class="action-bar" style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+        <div class="action-bar" style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;align-items:center">
+          <span class="filter-tag">银行</span>
           <div id="bankFilterBtns" style="display:flex;gap:7px;flex-wrap:wrap"></div>
+        </div>
+        <div class="action-bar" style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+          <span class="filter-tag">归属人</span>
+          <div id="ownerFilterBtns" style="display:flex;gap:7px;flex-wrap:wrap"></div>
         </div>
         <div id="bankList"></div>
         <div class="empty-state" id="bankEmpty" style="display:none"><i class="fa-solid fa-credit-card"></i><p>还没有银行卡记录，点右下角 + 新增</p></div>
@@ -665,9 +695,9 @@ body{
 const DB_NAME='memo_vault_db', STORE='vault', VAULT_KEY='vault';
 let cryptoKey=null, vaultSalt=null, vaultPinLen=0;
 const DEFAULT_CHECKIN_DEFS=[{id:'eye',title:'眼部放松',icon:'💧',url:'https://v.douyin.com/0A3nxFCY0EQ/'},{id:'shake',title:'摇垮跟练',icon:'💃',url:'https://v.douyin.com/8DooryoLjrs/'},{id:'bdj',title:'八段锦跟练',icon:'🧘',url:'https://v.douyin.com/8vx_0r61WVE/'},{id:'gufa',title:'古法健身',icon:'🌿',url:'https://v.douyin.com/x4wps8yl_so/'}];
-function normalizeState(d){ d=d||{}; const banks=Array.isArray(d.banks)?d.banks:[]; let bankHistory=Array.isArray(d.bankHistory)?d.bankHistory:[]; if(!bankHistory.length){ const s=new Set(banks.map(b=>b.bankName).filter(Boolean)); bankHistory=[...s]; } return { memos:Array.isArray(d.memos)?d.memos:[], banks, stocks:Array.isArray(d.stocks)?d.stocks:[], todos:Array.isArray(d.todos)?d.todos:[], trash:Array.isArray(d.trash)?d.trash:[], bankHistory, checkinDefs:Array.isArray(d.checkinDefs)?d.checkinDefs:DEFAULT_CHECKIN_DEFS, checkinState:(d.checkinState&&typeof d.checkinState==='object')?d.checkinState:{date:'',done:{}} }; }
+function normalizeState(d){ d=d||{}; const banks=Array.isArray(d.banks)?d.banks:[]; let bankHistory=Array.isArray(d.bankHistory)?d.bankHistory:[]; if(!bankHistory.length){ const s=new Set(banks.map(b=>b.bankName).filter(Boolean)); bankHistory=[...s]; } let ownerHistory=Array.isArray(d.ownerHistory)?d.ownerHistory:[]; if(!ownerHistory.length){ const s2=new Set(banks.map(b=>b.ownerName).filter(Boolean)); ownerHistory=[...s2]; } return { memos:Array.isArray(d.memos)?d.memos:[], banks, stocks:Array.isArray(d.stocks)?d.stocks:[], todos:Array.isArray(d.todos)?d.todos:[], trash:Array.isArray(d.trash)?d.trash:[], bankHistory, ownerHistory, checkinDefs:Array.isArray(d.checkinDefs)?d.checkinDefs:DEFAULT_CHECKIN_DEFS, checkinState:(d.checkinState&&typeof d.checkinState==='object')?d.checkinState:{date:'',done:{}} }; }
 let state=normalizeState();
-let currentTab='todo', bankFilter='all', stockFilterTags=[], memoFilterTags=[], searchQuery='';
+let currentTab='todo', bankFilter='all', ownerFilter='all', stockFilterTags=[], memoFilterTags=[], searchQuery='';
 let revealedCVV=new Set();
 
 const $=id=>document.getElementById(id);
@@ -764,7 +794,7 @@ document.querySelectorAll('.nav-item').forEach(btn=>{
     btn.classList.add('active'); currentTab=btn.dataset.tab;
     $('panel-'+currentTab).classList.add('active');
     toggleFab();
-    if(currentTab==='bank')renderBankFilter();
+    if(currentTab==='bank'){renderBankFilter();renderOwnerFilter();}
     if(currentTab==='todo'){renderTodos();renderCheckins();} if(currentTab==='stock'){renderStockTags();renderStocks();}
   };
 });
@@ -841,7 +871,7 @@ function openMemoForm(id){
   attachTagInput('m-tagwrap','m-tagin',tags,[...new Set(state.memos.flatMap(m=>m.tags||[]))].sort());
   modalFocus('m-content'); window.__memoTags=tags;
 }
-function saveMemo(id){ const content=$('m-content').value.trim(),tags=window.__memoTags||[],images=window.__memoImages||[]; if(!content){toast('内容不能为空','error');return;} const title=''; if(id){const m=state.memos.find(x=>x.id===id);if(m)Object.assign(m,{title,content,tags,images,updatedAt:nowISO()});}else{state.memos.unshift({id:uid(),title,content,tags,images,pinned:false,createdAt:nowISO(),updatedAt:nowISO()});} save();renderAll();closeModal();toast('已保存','success'); }
+function saveMemo(id){ const content=$('m-content').value.trim(),tags=window.__memoTags||[],images=window.__memoImages||[]; if(!content){toast('内容不能为空','error');return;} const title=''; if(id){const m=state.memos.find(x=>x.id===id);if(m)Object.assign(m,{title,content,tags,images,updatedAt:nowISO()});}else{state.memos.unshift({id:uid(),title,content,tags,images,pinned:false,createdAt:nowISO(),updatedAt:nowISO()}); memoFilterTags=[];} save();renderAll();closeModal();toast('已保存','success'); }
 function deleteMemo(id){ const m=state.memos.find(x=>x.id===id); if(!m)return; confirmDialog('移入回收站','将「'+firstLine(m.content).slice(0,12)+'」移入回收站，30 天内可恢复。').then(ok=>{ if(!ok)return; state.trash.unshift(Object.assign({},m,{deletedAt:nowISO()})); state.memos=state.memos.filter(x=>x.id!==id); save();renderAll();toast('已移入回收站'); }); }
 function cleanupTrash(){ const cut=Date.now()-30*864e5; const before=state.trash.length; state.trash=state.trash.filter(x=>new Date(x.deletedAt).getTime()>cut); if(state.trash.length!==before)save(); }
 function trashLeft(iso){ const ms=30*864e5-(Date.now()-new Date(iso).getTime()); return ms>0?Math.ceil(ms/864e5):0; }
@@ -1101,20 +1131,75 @@ function deleteCheckinDef(){ if(!_editingCiId)return;confirmDialog('删除打卡
 document.addEventListener('click',e=>{
   const tab=e.target.closest('.todo-tab');if(tab){todoFilter=tab.dataset.f;document.querySelectorAll('.todo-tab').forEach(x=>x.classList.remove('active'));tab.classList.add('active');renderTodos();}
 });
+/* 点击空白处收起银行/归属人选项卡 */
+document.addEventListener('click',e=>{
+  if(e.target.closest('.sel-field'))return;
+  ['bank','owner'].forEach(k=>{ const p=$(''+k+'-panel'), t=$(''+k+'-trigger'); if(p&&p.style.display!=='none'){p.style.display='none'; if(t)t.classList.remove('open');} });
+});
 
 /* 模块二：银行卡 */
 function cardTypeOptions(sel){ sel=sel||'信用卡'; return ['信用卡','借记卡'].map(t=>`<option ${t===sel?'selected':''}>${t}</option>`).join(''); }
 function modalFocus(id){ if(!id)return; const el=document.getElementById(id); if(el)setTimeout(()=>el.focus(),360); }
+/* 展开式选项卡选择器（银行 / 归属人） */
+function selFieldHTML(kind, options, selected, placeholder){
+  const opts=(options||[]).map(o=>`<button type="button" class="sel-chip ${o===selected?'active':''}" onclick="pickSel('${kind}','${esc(o)}')">${esc(o)}</button>`).join('');
+  const has=(options&&options.length);
+  return `<div class="sel-field">
+    <button type="button" class="sel-trigger ${selected?'':'placeholder'}" id="${kind}-trigger" onclick="toggleSel('${kind}')">
+      <span class="sel-txt" id="${kind}-txt">${selected?esc(selected):placeholder}</span>
+      <i class="fa-solid fa-chevron-down sel-caret"></i>
+    </button>
+    <input type="hidden" id="b-${kind==='bank'?'bank':'owner'}" value="${esc(selected||'')}">
+    <div class="sel-panel" id="${kind}-panel" style="display:none">
+      ${has?`<div class="sel-chips">${opts}</div>`:`<div class="sel-empty">暂无历史，可在下方新增${kind==='bank'?'银行':'归属人'}</div>`}
+      <div class="sel-add">
+        <input id="${kind}-new" placeholder="新增${kind==='bank'?'银行':'归属人'}" onkeydown="if(event.key==='Enter'){event.preventDefault();addSelFromInput('${kind}')}">
+        <button type="button" class="btn btn-sm btn-primary" onclick="addSelFromInput('${kind}')">添加</button>
+      </div>
+    </div>
+  </div>`;
+}
+function toggleSel(kind){
+  const panel=$(''+kind+'-panel'), trig=$(''+kind+'-trigger');
+  const willOpen=panel.style.display==='none';
+  ['bank','owner'].forEach(k=>{ const p=$(''+k+'-panel'), t=$(''+k+'-trigger'); if(p)p.style.display='none'; if(t)t.classList.remove('open'); });
+  if(willOpen){ panel.style.display='block'; trig.classList.add('open'); }
+}
+function pickSel(kind, val){
+  const hid=kind==='bank'?'b-bank':'b-owner';
+  const inp=$(hid); if(inp)inp.value=val;
+  const txt=$(''+kind+'-txt'); if(txt)txt.textContent=val;
+  const trig=$(''+kind+'-trigger'); if(trig)trig.classList.remove('placeholder');
+  const panel=$(''+kind+'-panel'); if(panel)panel.querySelectorAll('.sel-chip').forEach(c=>c.classList.toggle('active', c.textContent===val));
+  if(panel)panel.style.display='none';
+  if(trig)trig.classList.remove('open');
+}
+function addSelFromInput(kind){
+  const inp=$(''+kind+'-new'); const val=(inp&&inp.value||'').trim(); if(!val){toast('请输入名称','error');return;}
+  const arr=kind==='bank'?(state.bankHistory=state.bankHistory||[]):(state.ownerHistory=state.ownerHistory||[]);
+  const i=arr.indexOf(val); if(i>=0)arr.splice(i,1); arr.unshift(val); if(arr.length>50)arr.length=50;
+  pickSel(kind, val);
+  rebuildSel(kind);
+  if(inp)inp.value='';
+}
+function rebuildSel(kind){
+  const panel=$(''+kind+'-panel'); if(!panel)return;
+  const cur=$(kind==='bank'?'b-bank':'b-owner').value;
+  const opts=kind==='bank'?(state.bankHistory||[]):(state.ownerHistory||[]);
+  const chips=opts.length?`<div class="sel-chips">${opts.map(o=>`<button type="button" class="sel-chip ${o===cur?'active':''}" onclick="pickSel('${kind}','${esc(o)}')">${esc(o)}</button>`).join('')}</div>`:`<div class="sel-empty">暂无历史，可在下方新增${kind==='bank'?'银行':'归属人'}</div>`;
+  panel.innerHTML=chips+`<div class="sel-add"><input id="${kind}-new" placeholder="新增${kind==='bank'?'银行':'归属人'}" onkeydown="if(event.key==='Enter'){event.preventDefault();addSelFromInput('${kind}')}"><button type="button" class="btn btn-sm btn-primary" onclick="addSelFromInput('${kind}')">添加</button></div>`;
+}
 function openBankForm(id){
   const edit=id?state.banks.find(b=>b.id===id):null;
   openModal(`<h3><i class="fa-solid fa-credit-card"></i> ${edit?'编辑卡片':'新增卡片'}</h3>
-    <div class="form-row"><div class="form-group"><label>归属银行</label><input id="b-bank" list="bankHistList" value="${edit?esc(edit.bankName):''}" placeholder="如：工商银行"><datalist id="bankHistList">${state.bankHistory.map(b=>`<option value="${esc(b)}">`).join('')}</datalist></div><div class="form-group"><label>归属人</label><input id="b-owner" value="${edit?esc(edit.ownerName):''}" placeholder="持卡人姓名"></div></div>
-    <div class="form-row"><div class="form-group"><label>卡种</label><select id="b-type">${cardTypeOptions(edit?edit.cardType:'')}</select></div><div class="form-group"><label>卡号</label><input id="b-number" value="${edit?esc(edit.cardNumber):''}" placeholder="卡号" inputmode="numeric"></div></div>
-    <div class="form-row"><div class="form-group"><label>有效期 (MM/YY)</label><input id="b-valid" value="${edit?esc(edit.validThru):''}" placeholder="如 08/29"></div><div class="form-group"><label>CVC</label><input id="b-cvc" value="${edit?esc(edit.cvc):''}" placeholder="安全码" inputmode="numeric" maxlength="4"></div></div>
-    <div class="form-group"><label>账单日（每月几号）</label><input id="b-billing" type="number" min="1" max="31" value="${edit?edit.billingDay:''}" placeholder="如 15"></div>
+    <div style="margin-bottom:12px"><button type="button" class="btn btn-outline btn-sm" style="width:100%" onclick="startBankOCR()"><i class="fa-solid fa-camera"></i> 拍照 / 上传识图，自动填表</button></div>
+    <input type="file" id="bankOcrFile" accept="image/*" style="display:none" onchange="onBankOCRFile(event)">
+    <div class="form-row"><div class="form-group"><label>归属银行</label>${selFieldHTML('bank', state.bankHistory||[], edit?edit.bankName:'', '选择银行')}</div><div class="form-group"><label>归属人</label>${selFieldHTML('owner', state.ownerHistory||[], edit?edit.ownerName:'', '选择归属人')}</div></div>
+    <div class="form-row"><div class="form-group"><label>卡种</label><select id="b-type">${cardTypeOptions(edit?edit.cardType:'')}</select></div><div class="form-group"><label>安全码 (CVC)</label><input id="b-cvc" value="${edit?esc(edit.cvc):''}" placeholder="安全码" inputmode="numeric" maxlength="4"></div></div>
+    <div class="form-group"><label>卡号</label><input id="b-number" value="${edit?esc(edit.cardNumber):''}" placeholder="卡号" inputmode="numeric"></div>
+    <div class="form-row"><div class="form-group"><label>有效期 (MM/YY)</label><input id="b-valid" value="${edit?esc(edit.validThru):''}" placeholder="如 08/29"></div><div class="form-group"><label>账单日（每月几号）</label><input id="b-billing" type="number" min="1" max="31" value="${edit?edit.billingDay:''}" placeholder="如 15"></div></div>
     <div class="form-group"><label>备注</label><textarea id="b-remark" placeholder="备注信息">${edit?esc(edit.remark):''}</textarea></div>
     <div class="form-actions"><button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveBank('${edit?id:''}')">保存</button></div>`);
-  modalFocus('b-bank');
 }
 function saveBank(id){
   const bankName=$('b-bank').value.trim(),ownerName=$('b-owner').value.trim(),cardNumber=$('b-number').value.trim(),validThru=$('b-valid').value.trim(),cvc=$('b-cvc').value.trim(),billingDay=parseInt($('b-billing').value)||'',cardType=$('b-type').value,remark=$('b-remark').value.trim();
@@ -1123,9 +1208,43 @@ function saveBank(id){
   if(id){ const b=state.banks.find(x=>x.id===id); Object.assign(b,{bankName,ownerName,cardNumber,validThru,cvc,billingDay,cardType,remark,repaid,updatedAt:nowISO()}); }
   else{ state.banks.unshift({id:uid(),bankName,ownerName,cardNumber,validThru,cvc,billingDay,cardType,remark,repaid,createdAt:nowISO(),updatedAt:nowISO()}); }
   state.bankHistory=state.bankHistory||[]; if(bankName){ const hi=state.bankHistory.indexOf(bankName); if(hi>=0)state.bankHistory.splice(hi,1); state.bankHistory.unshift(bankName); if(state.bankHistory.length>50)state.bankHistory.length=50; }
+  if(ownerName){ state.ownerHistory=state.ownerHistory||[]; const oi=state.ownerHistory.indexOf(ownerName); if(oi>=0)state.ownerHistory.splice(oi,1); state.ownerHistory.unshift(ownerName); if(state.ownerHistory.length>50)state.ownerHistory.length=50; }
   save();renderAll();closeModal();toast('已保存','success');
 }
 function deleteBank(id){ confirmDialog('删除卡片','确定要删除这张银行卡记录吗？').then(ok=>{if(!ok)return;state.banks=state.banks.filter(b=>b.id!==id);save();renderAll();toast('已删除');}); }
+function ensureTesseract(cb){
+  if(window.Tesseract){cb();return;}
+  toast('正在加载识图组件…','');
+  const s=document.createElement('script');
+  s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+  s.onload=()=>{ toast('识图组件已就绪','success'); cb(); };
+  s.onerror=()=>toast('识图组件加载失败，请检查网络','error');
+  document.head.appendChild(s);
+}
+function startBankOCR(){ ensureTesseract(()=>{ const f=$('bankOcrFile'); if(f)f.click(); }); }
+function onBankOCRFile(e){
+  const file=e.target.files&&e.target.files[0]; e.target.value=''; if(!file)return;
+  if(!window.Tesseract){ toast('识图组件未就绪，请稍候重试','error'); return; }
+  showOcrLoading(true);
+  const reader=new FileReader();
+  reader.onload=()=>{ Tesseract.recognize(reader.result,'eng').then(({data})=>{ showOcrLoading(false); fillBankFromOCR(data.text||''); }).catch(err=>{ showOcrLoading(false); toast('识图失败：'+(err&&err.message||err),'error'); }); };
+  reader.onerror=()=>{ showOcrLoading(false); toast('读取图片失败','error'); };
+  reader.readAsDataURL(file);
+}
+function fillBankFromOCR(text){
+  if(!text||!text.trim()){ toast('未识别到文字','error'); return; }
+  const nums=(text.match(/\d+/g)||[]);
+  let cardNo=''; nums.forEach(n=>{ if(n.length>=13&&n.length>cardNo.length)cardNo=n; });
+  let work=text; if(cardNo) work=work.split(cardNo).join(' ');
+  let expiry=''; const em=work.match(/\b(\d{2})[\s/](\d{2})\b/); if(em&&+em[1]>=1&&+em[1]<=12)expiry=em[1]+'/'+em[2];
+  if(!expiry){ const f=(work.match(/\b\d{4}\b/g)||[]).find(s=>{const m=+s.slice(0,2);return m>=1&&m<=12;}); if(f)expiry=f.slice(0,2)+'/'+f.slice(2); }
+  let cvc=''; const c3=(work.match(/\b\d{3}\b/g)||[]); if(c3.length)cvc=c3[0];
+  if(cardNo){const el=$('b-number');if(el)el.value=cardNo;}
+  if(expiry){const el=$('b-valid');if(el)el.value=expiry;}
+  if(cvc){const el=$('b-cvc');if(el)el.value=cvc;}
+  toast((cardNo||expiry||cvc)?'已自动识别填入，请核对':'未识别到卡号/日期/安全码','success');
+}
+function showOcrLoading(on){ let el=$('ocrLoading'); if(on){ if(!el){ el=document.createElement('div'); el.id='ocrLoading'; el.className='ocr-loading'; el.innerHTML='<div class="ocr-spin"></div><p>识图中…</p>'; document.body.appendChild(el); } } else if(el){ el.remove(); } }
 function toggleRepaid(id){
   const b=state.banks.find(x=>x.id===id); if(!b)return;
   b.repaid=b.repaid||[];
@@ -1164,6 +1283,11 @@ function renderBankFilter(){
   wrap.innerHTML=`<button class="btn btn-outline btn-sm ${bankFilter==='all'?'active':''}" onclick="setBankFilter('all')">全部</button>`+banks.map(b=>`<button class="btn btn-outline btn-sm ${bankFilter===b?'active':''}" onclick="setBankFilter('${esc(b)}')">${esc(b)}</button>`).join('');
 }
 function setBankFilter(b){bankFilter=b;renderBankFilter();renderBanks();}
+function renderOwnerFilter(){
+  const owners=[...new Set(state.banks.map(b=>b.ownerName).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'zh')),wrap=$('ownerFilterBtns');
+  wrap.innerHTML=`<button class="btn btn-outline btn-sm ${ownerFilter==='all'?'active':''}" onclick="setOwnerFilter('all')">全部</button>`+owners.map(o=>`<button class="btn btn-outline btn-sm ${ownerFilter===o?'active':''}" onclick="setOwnerFilter('${esc(o)}')">${esc(o)}</button>`).join('');
+}
+function setOwnerFilter(o){ownerFilter=o;renderOwnerFilter();renderBanks();}
 function renderBillReminders(){
   const box=$('billReminders'); if(!box)return;
   const list=state.banks.map(b=>({b,r:billingReminder(b),repaid:isRepaid(b)})).filter(x=>x.r).sort((a,b)=>a.r.days-b.r.days);
@@ -1174,7 +1298,7 @@ function renderBanks(){
   const list=$('bankList');
   renderBillReminders();
   $('bankEmpty').style.display=state.banks.length?'none':'block';
-  let arr=state.banks.slice(); if(bankFilter!=='all')arr=arr.filter(b=>b.bankName===bankFilter);
+  let arr=state.banks.slice(); if(bankFilter!=='all')arr=arr.filter(b=>b.bankName===bankFilter); if(ownerFilter!=='all')arr=arr.filter(b=>b.ownerName===ownerFilter);
   if(searchQuery){const q=searchQuery;arr=arr.filter(b=>(b.bankName||'').toLowerCase().includes(q)||(b.ownerName||'').toLowerCase().includes(q)||(b.cardNumber||'').toLowerCase().includes(q)||(b.cardType||'').toLowerCase().includes(q)||(b.remark||'').toLowerCase().includes(q));}
   if(!arr.length){list.innerHTML='';return;}
   const groups={}; arr.forEach(b=>{(groups[b.bankName||'未填银行']||=[]).push(b);});
@@ -1187,11 +1311,11 @@ function fallbackCopy(text,done){ const ta=document.createElement('textarea'); t
 function toggleCVV(id){ if(revealedCVV.has(id))revealedCVV.delete(id); else revealedCVV.add(id); renderBanks(); }
 function bankAccent(name){
   const dark=document.body.dataset.theme==='dark';
-  const offsets=[0,-30,26,-58,46,14,-18,38]; // 围绕主题蓝的同族相位（蓝/天蓝/青/靛/紫罗兰）
+  const hues=[222,232,212,246,258,226,238,216]; // 柔和的蓝/靛/紫同族，避开荧光绿青
   let h=0; const s=name||''; for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;
-  const hue=(222+offsets[h%offsets.length]+360)%360;   // 主题蓝 #2563EB 色相约 222
-  const sat=64+(h%16);                                  // 64%~80%
-  const light=dark?66+(h%8):50+(h%10);                  // 深/浅模式自适应明度
+  const hue=hues[h%hues.length];
+  const sat=dark?42:46;       // 低饱和，柔和不过艳
+  const light=dark?62:58;    // 明度适中
   return `hsl(${hue} ${sat}% ${light}%)`;
 }
 function renderBankCard(b){
@@ -1265,7 +1389,7 @@ function saveStock(id){
   const title=$('s-title').value.trim(),content=$('s-content').value.trim(),tags=window.__stockTags||[],images=window.__noteImages||[];
   if(!title&&!content){toast('标题和内容不能都为空','error');return;}
   if(id){ const s=state.stocks.find(x=>x.id===id); Object.assign(s,{title,content,tags,images,updatedAt:nowISO()}); }
-  else{ state.stocks.unshift({id:uid(),title,content,tags,images,createdAt:nowISO(),updatedAt:nowISO()}); }
+  else{ state.stocks.unshift({id:uid(),title,content,tags,images,createdAt:nowISO(),updatedAt:nowISO()}); stockFilterTags=[]; }
   save();renderAll();closeModal();toast('已保存','success');
 }
 function deleteStock(id){ confirmDialog('删除笔记','确定要删除这条笔记吗？').then(ok=>{if(!ok)return;state.stocks=state.stocks.filter(s=>s.id!==id);save();renderAll();toast('已删除');}); }
@@ -1376,7 +1500,7 @@ function wipeAll(){ confirmDialog('清空所有数据','将删除全部备忘、
 $('fab').onclick=()=>{ if(currentTab==='todo')openTodoForm(); else if(currentTab==='bank')openBankForm(); else if(currentTab==='stock')openStockForm(); else openMemoForm(); };
 
 /* 渲染 */
-function renderAll(){ cleanupTrash(); greet(); renderTodos();renderCheckins();renderMemoTags();renderMemos();renderBanks(); if(currentTab=== 'bank')renderBankFilter(); if(currentTab=== 'stock')renderStockTags(); renderStocks(); }
+function renderAll(){ cleanupTrash(); greet(); renderTodos();renderCheckins();renderMemoTags();renderMemos();renderBanks(); if(currentTab=== 'bank'){renderBankFilter();renderOwnerFilter();} if(currentTab=== 'stock')renderStockTags(); renderStocks(); }
 
 /* 启动 */
 initTheme(); initLock(); setupTodoDnD(); refreshNotifyPerm();
