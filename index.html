@@ -391,6 +391,17 @@ body{
 .sel-add{display:flex;gap:7px;margin-top:9px}
 .sel-add input{flex:1;min-width:0;padding:9px 11px;border:1.5px solid var(--line-strong);border-radius:var(--r-sm);background:var(--surface-2);color:var(--text);font-size:14px;outline:none;font-family:inherit}
 .sel-add input:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
+/* 列表筛选下拉（银行 / 归属人） */
+.filter-sel-inner{position:relative}
+.filter-trigger{width:100%;display:flex;align-items:center;justify-content:space-between;gap:6px;padding:9px 12px;border:1.5px solid var(--line-strong);border-radius:var(--r-sm);background:var(--surface-2);color:var(--text);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s var(--ease);min-height:39px;text-align:left;font-family:inherit;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.filter-trigger:hover{border-color:var(--primary)}
+.filter-trigger.open{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft);background:var(--surface)}
+.f-caret{font-size:10px;color:var(--text-3);transition:transform .25s var(--ease);flex:none}
+.filter-trigger.open .f-caret{transform:rotate(180deg)}
+.f-panel{position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:30;border:1.5px solid var(--primary);border-radius:var(--r-sm);background:var(--surface);padding:8px;display:flex;flex-wrap:wrap;gap:6px;box-shadow:var(--shadow-lg);animation:selPop .2s var(--ease);max-height:200px;overflow-y:auto}
+.fchip{border:1.5px solid var(--line-strong);background:var(--surface-2);color:var(--text-2);font-size:12px;font-weight:600;padding:5px 10px;border-radius:var(--r-pill);cursor:pointer;transition:all .16s var(--ease);white-space:nowrap;font-family:inherit}
+.fchip:hover{border-color:var(--primary);color:var(--primary-strong)}
+.fchip.active{background:var(--primary);color:#fff;border-color:var(--primary)}
 .tag-input-wrap{display:flex;flex-wrap:wrap;gap:6px;padding:8px 11px;border:1.5px solid var(--line-strong);border-radius:var(--r-sm);background:var(--surface-2);min-height:44px;align-items:center;cursor:text}
 .tag-input-wrap:focus-within{border-color:var(--primary);box-shadow:0 0 0 4px var(--primary-soft);background:var(--surface)}
 .tag-input-wrap input{flex:1;min-width:80px;border:none!important;outline:none!important;box-shadow:none!important;padding:2px 0!important;font-size:13px;background:transparent!important;color:var(--text)}
@@ -653,13 +664,10 @@ body{
       <!-- 银行卡面板 -->
       <div class="tab-panel" id="panel-bank">
         <div id="billReminders"></div>
-        <div class="action-bar" style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;align-items:center">
-          <span class="filter-tag">银行</span>
-          <div id="bankFilterBtns" style="display:flex;gap:7px;flex-wrap:wrap"></div>
-        </div>
-        <div class="action-bar" style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
-          <span class="filter-tag">归属人</span>
-          <div id="ownerFilterBtns" style="display:flex;gap:7px;flex-wrap:wrap"></div>
+        <div class="action-bar" style="display:flex;gap:11px;margin-bottom:14px;align-items:center">
+          <span class="filter-tag">筛选</span>
+          <div class="filter-sel" id="bankFilterField" style="flex:1"></div>
+          <div class="filter-sel" id="ownerFilterField" style="flex:1"></div>
         </div>
         <div id="bankList"></div>
         <div class="empty-state" id="bankEmpty" style="display:none"><i class="fa-solid fa-credit-card"></i><p>还没有银行卡记录，点右下角 + 新增</p></div>
@@ -1288,15 +1296,44 @@ function billingReminder(b){
   return {days:d,level,text};
 }
 function renderBankFilter(){
-  const banks=[...new Set(state.banks.map(b=>b.bankName).filter(Boolean))].sort(),wrap=$('bankFilterBtns');
-  wrap.innerHTML=`<button class="btn btn-outline btn-sm ${bankFilter==='all'?'active':''}" onclick="setBankFilter('all')">全部</button>`+banks.map(b=>`<button class="btn btn-outline btn-sm ${bankFilter===b?'active':''}" onclick="setBankFilter('${esc(b)}')">${esc(b)}</button>`).join('');
+  const banks=[...new Set(state.banks.map(b=>b.bankName).filter(Boolean))].sort();
+  const wrap=$('bankFilterField'); if(!wrap)return;
+  const label=bankFilter==='all'?'全部银行':bankFilter;
+  const chips=banks.map(b=>`<button type="button" class="fchip ${bankFilter===b?'active':''}" onclick="setBankFilter('${esc(b)}')">${esc(b)}</button>`).join('');
+  wrap.innerHTML=`<div class="filter-sel-inner">
+    <button type="button" class="filter-trigger" id="bf-trigger" onclick="toggleFilter('bank')"><span>${esc(label)}</span><i class="fa-solid fa-chevron-down f-caret"></i></button>
+    <div class="f-panel" id="bf-panel" style="display:none">
+      <button type="button" class="fchip ${bankFilter==='all'?'active':''}" onclick="setBankFilter('all')">全部银行</button>${chips}
+    </div>
+  </div>`;
 }
-function setBankFilter(b){bankFilter=b;renderBankFilter();renderBanks();}
+function setBankFilter(b){bankFilter=b;renderBankFilter();renderOwnerFilter();renderBanks();}
 function renderOwnerFilter(){
-  const owners=[...new Set(state.banks.map(b=>b.ownerName).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'zh')),wrap=$('ownerFilterBtns');
-  wrap.innerHTML=`<button class="btn btn-outline btn-sm ${ownerFilter==='all'?'active':''}" onclick="setOwnerFilter('all')">全部</button>`+owners.map(o=>`<button class="btn btn-outline btn-sm ${ownerFilter===o?'active':''}" onclick="setOwnerFilter('${esc(o)}')">${esc(o)}</button>`).join('');
+  const owners=[...new Set(state.banks.map(b=>b.ownerName).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'zh'));
+  const wrap=$('ownerFilterField'); if(!wrap)return;
+  const label=ownerFilter==='all'?'全部归属人':ownerFilter;
+  const chips=owners.map(o=>`<button type="button" class="fchip ${ownerFilter===o?'active':''}" onclick="setOwnerFilter('${esc(o)}')">${esc(o)}</button>`).join('');
+  wrap.innerHTML=`<div class="filter-sel-inner">
+    <button type="button" class="filter-trigger" id="of-trigger" onclick="toggleFilter('owner')"><span>${esc(label)}</span><i class="fa-solid fa-chevron-down f-caret"></i></button>
+    <div class="f-panel" id="of-panel" style="display:none">
+      <button type="button" class="fchip ${ownerFilter==='all'?'active':''}" onclick="setOwnerFilter('all')">全部归属人</button>${chips}
+    </div>
+  </div>`;
 }
-function setOwnerFilter(o){ownerFilter=o;renderOwnerFilter();renderBanks();}
+function setOwnerFilter(o){ownerFilter=o;renderBankFilter();renderOwnerFilter();renderBanks();}
+function toggleFilter(kind){
+  const id=kind==='bank'?'bf':'of';
+  const panel=$(id+'-panel'), trig=$(id+'-trigger');
+  const willOpen=panel.style.display==='none';
+  /* 关闭另一个 */
+  ['bf','of'].forEach(x=>{ const p=$(x+'-panel'), t=$(x+'-trigger'); if(p)p.style.display='none'; if(t)t.classList.remove('open'); });
+  if(willOpen){ panel.style.display='block'; trig.classList.add('open'); }
+}
+/* 点击空白处收起筛选下拉 */
+document.addEventListener('click',e=>{
+  if(e.target.closest('.filter-sel-inner'))return;
+  ['bf','of'].forEach(x=>{ const p=$(x+'-panel'), t=$(x+'-trigger'); if(p&&p.style.display!=='none'){p.style.display='none'; if(t)t.classList.remove('open');} });
+});
 function renderBillReminders(){
   const box=$('billReminders'); if(!box)return;
   const list=state.banks.map(b=>({b,r:billingReminder(b),repaid:isRepaid(b)})).filter(x=>x.r).sort((a,b)=>a.r.days-b.r.days);
