@@ -1032,7 +1032,7 @@ function saveTodo(id){
   if(id){const t=state.todos.find(x=>x.id===id);Object.assign(t,{title,repeat,customDays:+customDays,noTime,nextRemindAt:next,updatedAt:nowISO(),priority,countdown,targetDate});}
   else{state.todos.unshift({id:uid(),title,repeat,customDays:+customDays,noTime,createdAt:nowISO(),nextRemindAt:next,done:false,completedAt:null,priority,countdown,targetDate});}
   lastPriority=priority;
-  save();renderAll();closeModal();toast('已保存','success');
+  save().then(()=>{ renderAll();closeModal();toast('已保存','success'); }).catch(err=>{ toast('保存失败，请重试','error'); console.error(err); });
 }
 function deleteTodo(id){ confirmDialog('删除待办','确定要删除这条待办吗？').then(ok=>{if(!ok)return;state.todos=state.todos.filter(x=>x.id!==id);save();renderAll();toast('已删除');}); }
 function toggleTodo(id){ const t=state.todos.find(x=>x.id===id);if(!t)return;
@@ -1204,12 +1204,21 @@ function openBankForm(id){
 function saveBank(id){
   const bankName=$('b-bank').value.trim(),ownerName=$('b-owner').value.trim(),cardNumber=$('b-number').value.trim(),validThru=$('b-valid').value.trim(),cvc=$('b-cvc').value.trim(),billingDay=parseInt($('b-billing').value)||'',cardType=$('b-type').value,remark=$('b-remark').value.trim();
   if(!bankName){toast('请填写归属银行','error');return;}
+  /* 卡号重复检测 */
+  if(cardNumber&&cardNumber.length>=13){
+    const norm=cardNumber.replace(/\s/g,'');
+    const dup=state.banks.find(b=>b.cardNumber&&b.cardNumber.replace(/\s/g,'')===norm&&b.id!==id);
+    if(dup){toast('卡号已存在：'+esc(dup.bankName||'')+' · '+esc(dup.ownerName||'')+'，请勿重复录入','error');return;}
+  }
+  /* 防重复点击 */
+  const btn=document.querySelector('#modalOverlay .btn-primary'); if(btn){btn.disabled=true;btn.textContent='保存中…';}
   const repaid=id?(state.banks.find(x=>x.id===id).repaid||[]).slice():[];
   if(id){ const b=state.banks.find(x=>x.id===id); Object.assign(b,{bankName,ownerName,cardNumber,validThru,cvc,billingDay,cardType,remark,repaid,updatedAt:nowISO()}); }
   else{ state.banks.unshift({id:uid(),bankName,ownerName,cardNumber,validThru,cvc,billingDay,cardType,remark,repaid,createdAt:nowISO(),updatedAt:nowISO()}); }
   state.bankHistory=state.bankHistory||[]; if(bankName){ const hi=state.bankHistory.indexOf(bankName); if(hi>=0)state.bankHistory.splice(hi,1); state.bankHistory.unshift(bankName); if(state.bankHistory.length>50)state.bankHistory.length=50; }
   if(ownerName){ state.ownerHistory=state.ownerHistory||[]; const oi=state.ownerHistory.indexOf(ownerName); if(oi>=0)state.ownerHistory.splice(oi,1); state.ownerHistory.unshift(ownerName); if(state.ownerHistory.length>50)state.ownerHistory.length=50; }
-  save();renderAll();closeModal();toast('已保存','success');
+  /* 异步保存，完成后关闭弹窗 */
+  save().then(()=>{ renderAll();closeModal();toast('已保存','success'); }).catch(err=>{ toast('保存失败，请重试','error'); console.error(err); if(btn){btn.disabled=false;btn.textContent='保存';} });
 }
 function deleteBank(id){ confirmDialog('删除卡片','确定要删除这张银行卡记录吗？').then(ok=>{if(!ok)return;state.banks=state.banks.filter(b=>b.id!==id);save();renderAll();toast('已删除');}); }
 function ensureTesseract(cb){
@@ -1390,7 +1399,7 @@ function saveStock(id){
   if(!title&&!content){toast('标题和内容不能都为空','error');return;}
   if(id){ const s=state.stocks.find(x=>x.id===id); Object.assign(s,{title,content,tags,images,updatedAt:nowISO()}); }
   else{ state.stocks.unshift({id:uid(),title,content,tags,images,createdAt:nowISO(),updatedAt:nowISO()}); stockFilterTags=[]; }
-  save();renderAll();closeModal();toast('已保存','success');
+  save().then(()=>{ renderAll();closeModal();toast('已保存','success'); }).catch(err=>{ toast('保存失败，请重试','error'); console.error(err); });
 }
 function deleteStock(id){ confirmDialog('删除笔记','确定要删除这条笔记吗？').then(ok=>{if(!ok)return;state.stocks=state.stocks.filter(s=>s.id!==id);save();renderAll();toast('已删除');}); }
 function imgBlock(prefix, images){
